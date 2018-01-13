@@ -60,12 +60,12 @@ if __name__ == '__main__':
     b.dim = args.dim
     
     try:
-        b.on()
+        b.on = True
         while True:
             b.cycle(colors, interval_ms=0)
     except KeyboardInterrupt:
         pass
-    b.off()
+    b.on = False
 
     
             
