@@ -31,11 +31,23 @@ class BlyncLightControl(object):
     def getLight(cls, light_id, color=(0,255,0)):
         '''Returns a configured BlyncLight.
         '''
+        cls._get_so()
+        return BlyncLight(light_id, color=color, blc=cls._blc)
 
+    @classmethod
+    def available_lights(cls):
+        '''Returns a list of available BlyncLight device indices and types.
+        '''
+        cls._get_so()
+        return [(i,t) for i,t in enumerate(cls._blc.devices)
+                if t != DeviceType.INVALID]
+
+    @classmethod
+    def _get_so(cls):
+        
         if not cls._blc:
             cls._blc = cls()
-        
-        return BlyncLight(light_id, color=color, blc=cls._blc)
+        return cls._blc
     
     def __init__(self):
         '''
@@ -57,6 +69,8 @@ class BlyncLightControl(object):
         '''
         return BlyncLight(light_id, color=color, blc=self)
 
+    # The following fuctions are stri
+
     def _fixup(self, fname, proto=None, retval=None):
         '''Updates ctypes functions with prototype and return value types.
         '''
@@ -68,18 +82,15 @@ class BlyncLightControl(object):
         return func
     
     @property
-    def device_types(self):
+    def devices(self):
         ''' List of DeviceInfo structures of length MAXIMUM_DEVICES {}
         '''.format(MAXIMUM_DEVICES)
-        try:
-            return self._device_types
-        except AttributeError:
-            pass
-        
+
+        self.find_devices()
         DeviceInfo_32 = ctypes.POINTER(DeviceInfo * MAXIMUM_DEVICES)
-        self._device_types = ctypes.cast(self._dll.asDeviceInfo,
-                                         DeviceInfo_32)
-        return self._devices
+        devices = ctypes.cast(self._dll.asDeviceInfo, DeviceInfo_32)
+        return [DeviceType(d.byType) for d in devices.contents]
+
 
     def device_type(self, light_id):
         '''Returns a DeviceType enumeration for the device referenced
@@ -89,7 +100,7 @@ class BlyncLightControl(object):
         
         Returns a DeviceType.
         '''
-        return DeviceType(self.device_types.contents[light_id].asType)
+        return DeviceType(self.devices.contents[light_id].byType)
         
         
     def find_devices(self, max_dev=MAXIMUM_DEVICES):
@@ -102,15 +113,7 @@ class BlyncLightControl(object):
         Returns the number of devices found.
         '''
         n = ctypes.c_int(max_dev)
-        try:
-            result = self._find_devices(ctypes.byref(n))
-            return n.value
-        except AttributeError:
-            pass
-        self._find_devices = self._fixup('FindDevices',
-                                         proto=[ctypes.c_void_p],
-                                         retval=ctypes.c_ubyte)
-        self._find_devices(ctypes.byref(n))
+        self._dll.FindDevices(ctypes.byref(n))
         return n.value
 
     def release_devices(self):
@@ -714,11 +717,13 @@ class BlyncLight(object):
         7. Disables music volume mute.
         '''
         
-        self.illuminated = False
+        self.on = False
         self.flashing = False
-        self.playing = False
         self.flash_speed = FlashSpeed.LOW
-        self.blc.turn_off_light(self.device_id)
+        self.play = False
+        self.music_selection = 0
+        self.volume = 0
+        self.mute = False
 
     def __repr__(self):
         '''
@@ -730,30 +735,35 @@ class BlyncLight(object):
         '''
         self.reset()
 
-
+    @property
     def on(self):
-        '''Turns the light on.
-        '''
+        '''Boolean indicating if the light is on or off.
 
-        r,g,b = self.color
-        v = self.blc.turn_on_rgb_lights(self.device_id, r, g, b)
-        self.illuminated = bool(v == 0)
-
-    def off(self):
-        '''Turns the light off.
+        Assign True to turn light on, False to turn light off.
         '''
-        v = self.blc.turn_off_light(self.device_id)
-        self.illuminated = not bool(v == 0)
+        try:
+            return self._on
+        except AttributeError:
+            pass
+        self.blc.turn_off_light(self.device_id)
+        self._on = False
+        return self._on
+
+    @on.setter
+    def on(self, newValue):
+        if bool(newValue):
+            r,g,b = self.color
+            v = self.blc.turn_on_rgb_lights(self.device_id, r, g, b)
+            self._on = bool(v == 0)
+        else:
+            v = self.blc.turn_off_light(self.device_id)
+            self._on = not bool(v == 0)
 
     @property
     def red(self):
         '''Red light color, integer between 0 and 255.
         '''
-        try:
-            return self.color[0]
-        except TypeError:
-            pass
-        return ColorToRGB(self.color)[0]
+        return self.color[0]
 
     @red.setter
     def red(self, newRed):
@@ -764,11 +774,7 @@ class BlyncLight(object):
     def green(self):
         '''Green light color, integer between 0 and 255.
         '''
-        try:
-            return self.color[1]
-        except TypeError:
-            pass
-        return ColorToRGB(self.color)[1]
+        return self.color[1]
         
     @green.setter
     def green(self, newGreen):
@@ -779,11 +785,7 @@ class BlyncLight(object):
     def blue(self):
         '''Blue light color, integer between 0 and 255.
         '''
-        try:
-            return self.color[2]
-        except TypeError:
-            pass
-        return ColorToRGB(self.color)[2]
+        return self.color[2]
 
     @blue.setter
     def blue(self, newBlue):
@@ -792,8 +794,8 @@ class BlyncLight(object):
         
     @property
     def color(self):
-        '''Tuple of red, green and blue color values.
-        Colors may be in the range of zero to 255.
+        '''3-tuple of red, green and blue color values.
+        Colors may be in the range of zero to 255. 
         '''
         try:
             return self._color
@@ -805,8 +807,8 @@ class BlyncLight(object):
     @color.setter
     def color(self, newColor):
         self._color = tuple(newColor[:3])
-        if self.illuminated:
-            self.on()
+        if self._on:
+            self.on = True
 
     @property
     def dim(self):
@@ -820,7 +822,6 @@ class BlyncLight(object):
             pass
         self._dim = False
 
-
     @dim.setter
     def dim(self, newValue):
         '''
@@ -831,6 +832,7 @@ class BlyncLight(object):
         else:
             v = self.blc.clr_light_dim(self.device_id)
             self._dim = not bool(v == 0)
+        return self._dim
 
     @property
     def flash(self):
@@ -882,7 +884,7 @@ class BlyncLight(object):
                                           self._flash_speed.value)
         
     def cycle(self, colors, interval_ms=100, repeat=1, preserve=True):
-        '''Cycle between colors with an 'interval_ms' pause between.
+        '''Cycle between colors with an 'interval_ms' pause in between.
 
              colors: list of rgb tuples
         interval_ms: optional integer, time in milliseconds
@@ -891,7 +893,7 @@ class BlyncLight(object):
 
         '''
         
-        if not self.illuminated:
+        if not self.on:
             return
             
         if preserve:
