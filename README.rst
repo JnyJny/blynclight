@@ -72,5 +72,6 @@ More examples can be found in the contrib directory.
 
 .. _Embrava: https://embrava.com
 .. _register: https://embrava.com/pages/embrava-software-sdk
+.. _request:  https://embrava.com/pages/embrava-software-sdk
 
 
