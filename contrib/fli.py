@@ -3,7 +3,7 @@
 '''Flash Lights Impressively
 '''
 
-from src.blynclight import BlyncLightControl
+from blynclight import BlyncLightControl
 
 if __name__ == '__main__':
 
