@@ -1,3 +1,4 @@
+
 import ctypes
 import os
 import time
@@ -11,7 +12,6 @@ MAXIMUM_DEVICES = 32
 
 class DeviceInfo(ctypes.Structure):
     _fields_ = [ ('byType', ctypes.c_byte)]
-
 
 class BlyncLightControl(object):
     '''
@@ -85,7 +85,7 @@ class BlyncLightControl(object):
         '''Returns a DeviceType enumeration for the device referenced
         by the light_id.
 
-        light_id: device integer
+        light_id: device index
         
         Returns a DeviceType.
         '''
