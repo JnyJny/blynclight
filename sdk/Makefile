@@ -15,3 +15,7 @@
 
 include Makefile.$(shell uname)
 
+LIB_DIR= ../src/blynclight/libs
+
+install: $(TARGET)
+	$(MV) $(TARGET) $(LIB_DIR)/$(shell uname)/$(TARGET)
