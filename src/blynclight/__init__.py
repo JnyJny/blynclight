@@ -1,5 +1,13 @@
 '''python bindings for Embrava BlyncLight devices.
 
+This module provides python bindings for Embrava BlyncLight family of
+devices.
+
+> from blynclight import BlyncLightControl
+> b = BlyncLightControl.getLight(0)
+> b.color = (255, 0, 0)
+> b.on()
+> b.off()
 
 '''
 
