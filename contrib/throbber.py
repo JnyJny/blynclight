@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+'''BlyncLight intensifies.
 '''
 
 import math
