@@ -6,3 +6,7 @@
 .\#*
 *.egg-info
 *.dms
+.eggs
+sdk/__MACOSX
+sdk/*.o
+sdk/embrava-sdk/*
