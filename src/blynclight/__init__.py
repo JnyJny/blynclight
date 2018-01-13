@@ -1,17 +1,22 @@
-'''
+'''python bindings for Embrava BlyncLight devices.
+
+
 '''
 
+from .blynclight import BlyncLightControl, BlyncLight, DeviceInfo
 from .color import Color, ColorToRGB, HexToRGB
-from .flashspeed import FlashSpeed
 from .devicetype import DeviceType
-from .blynclight import BlyncLightControl, BlyncLight
+from .flashspeed import FlashSpeed
 
 __all__ = [ 'BlyncLight',
             'BlyncLightControl',
             'Color',
             'ColorToRGB',
-            'HexToRGB',
+            'DeviceInfo',
             'DeviceType',
-            'FlashSpeed']
+            'FlashSpeed',
+            'HexToRGB']
+
+
             
     
