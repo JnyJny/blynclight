@@ -24,7 +24,7 @@ except (ImportError, AttributeError):
 setup(
     name='blynclight',
     version=version,
-    description="Control Embrava BlyncLight with Python",
+    description="Python bindings to control Embrava BlyncLight devices.",
     long_description=README,
     classifiers=[
         # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
