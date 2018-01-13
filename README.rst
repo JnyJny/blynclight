@@ -41,7 +41,7 @@ Once installed, the BlyncLight is yours to command!
 	red, green, blue = (255, 0, 0), (0, 255, 0), (0, 0, 255)
 	
 	light.color = green
-	light.on()
+	light.on = True
 	light.flash = True
 	light.color = red
 	light.flash = False
@@ -50,7 +50,7 @@ Once installed, the BlyncLight is yours to command!
 	light.green = 255
 	light.dim = True
 	light.dim = False
-	light.off()
+	light.on = False
 	
 More examples can be found in the contrib directory of the git repo.
 
