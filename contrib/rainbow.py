@@ -50,12 +50,12 @@ if __name__ == '__main__':
     b = BlyncLightControl.getLight(args.light_id, color=(0,0,0))
     
     try:
-        b.on()
+        b.on = True
         while True:
             b.cycle(colors, interval_ms=0)
     except KeyboardInterrupt:
         pass
-    b.off()
+    b.on = False
 
     
             

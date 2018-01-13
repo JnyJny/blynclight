@@ -11,9 +11,10 @@ if __name__ == '__main__':
 
     colors = [ (255,0,0), (0,0,255) ]
 
-    light.on()
     try:
+        light.on = True
         while True:
             light.cycle(colors, interval_ms=0)
     except KeyboardInterrupt:
         pass
+    light.on = False
