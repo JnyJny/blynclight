@@ -14,9 +14,24 @@ TL;DR
 -----
 
 1. `Register`_ with Embrava and receive SDK URLs for your operating system.
-2. git clone https://github.com/JnyJny/blynclight.git
-3. cd blynclight/sdk && make URL=PLATFORM_URL install
-4. cd .. ; pip install -e .
+2. Clone the repo
+
+.. code:: bash
+
+          $ git clone https://github.com/JnyJny/blynclight.git
+	  
+3. Build and install the shared object from the SDK
+
+.. code:: bash
+
+          $ cd blynclight/sdk && make URL=PLATFORM_URL install
+	  
+	  
+4. Install the package
+
+.. code:: bash
+
+          $ cd .. ; pip install -e .
 
 
 Uninstall with pip:
@@ -32,7 +47,7 @@ Once installed, the BlyncLight is yours to command!
 
 .. code:: python
 
-	#from blynclight import BlyncLightControl
+	from blynclight import BlyncLightControl
 	
 	lights = BlyncLightControl.availableLights()
 	
