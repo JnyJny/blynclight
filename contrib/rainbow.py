@@ -39,20 +39,25 @@ if __name__ == '__main__':
     
     parser.add_argument('-l','--light-id',
                         type=int,
-                        default=0)    
+                        default=0)
+    parser.add_argument('-s','--speed',
+                        action='count',
+                        default=0)
 
     args = parser.parse_args()
 
-    colors = [rgb for rgb in Spectrum(steps=256)]
+    colors = [rgb for rgb in Spectrum(255)]
 
     colors.extend(list(reversed(colors)))
 
     b = BlyncLightControl.getLight(args.light_id, color=(0,0,0))
+
+    interval = (args.speed * 100)
     
     try:
         b.on = True
         while True:
-            b.cycle(colors, interval_ms=0)
+            b.cycle(colors, interval_ms=interval)
     except KeyboardInterrupt:
         pass
     b.on = False
