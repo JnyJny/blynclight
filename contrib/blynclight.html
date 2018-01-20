@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <body>
+	<p>Click the button to turn a BlyncLight on and off.</p>
+	<div class="btn-group">
+	    <button onclick="onFunction()">On</button>
+	    <button onclick="offFunction()">Off</button>
+	</div>
+	<p id="theURL"></p>
+	<script>
+	 function onFunction() {
+	     var xhttp = new XMLHttpRequest();
+	     var url = "http://localhost:8000/blynclight/0/on";
+	     document.getElementById("theURL").innerHTML = url;
+	     xhttp.open("GET",url, true);
+	     xhttp.send();
+	 }
+	 
+	 function offFunction() {
+	     var xhttp = new XMLHttpRequest();
+	     var url = "http://localhost:8000/blynclight/0/off";
+	     document.getElementById("theURL").innerHTML = url;
+	     xhttp.open("GET",url, true);
+	     xhttp.send();	     
+	 }
+	</script>
+
+    </body>
+    </html>
+
+<html>
+
+
+    
+</html>
