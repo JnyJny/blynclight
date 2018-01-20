@@ -893,30 +893,3 @@ class BlyncLight(object):
             self._flash_speed = FlashSpeed(newValue)
         self.blc.select_light_flash_speed(self.device_id,
                                           self._flash_speed.value)
-        
-    def cycle(self, colors, interval_ms=100, repeat=1, preserve=True):
-        '''Cycle between colors with an 'interval_ms' pause in between.
-
-             colors: list of rgb tuples
-        interval_ms: optional integer, time in milliseconds
-             repeat: optional integer, number of times to repeat the cycle
-           preserve: optional boolean, preserve the starting light color
-
-        '''
-        
-        if not self.on:
-            return
-            
-        if preserve:
-            old_color = self.color
-            
-        for n in range(repeat):
-            for color in colors:
-                self.color = color
-                time.sleep(interval_ms/100)
-                
-        if preserve:
-            self.color = old_color
-        
-        
-    
