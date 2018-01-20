@@ -55,7 +55,11 @@ if __name__ == '__main__':
 
     proxy = BlyncLightProxy()
 
-    # XXX need to get available light_id's and validate the user's request
+    try:
+        proxy.lights[args.light_id]
+    except IndexError:
+        print(f'Light {args.light_id} not available.')
+        exit(-1)
     
     try:
         proxy.on(args.light_id)
