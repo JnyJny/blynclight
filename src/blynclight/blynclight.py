@@ -39,7 +39,7 @@ class BlyncLightControl(object):
         '''Returns a list of available BlyncLight device indices and types.
         '''
         cls._get_so()
-        return [(i,t) for i,t in enumerate(cls._blc.devices)
+        return [(i,str(t)) for i,t in enumerate(cls._blc.devices)
                 if t != DeviceType.INVALID]
 
     @classmethod
@@ -734,6 +734,16 @@ class BlyncLight(object):
         '''Resets the light before releasing it.
         '''
         self.reset()
+
+    @property
+    def status(self):
+        '''
+        '''
+        return { 'on': self.on,
+                 'color': self.color,
+                 'dim': self.dim,
+                 'flash': self.flash,
+                 'flash_speed': self.flash_speed.value }
 
     @property
     def on(self):
