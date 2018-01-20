@@ -4,14 +4,12 @@ import os
 import time
 from pathlib import Path
 
-from .color import Color, ColorToRGB
-from .devicetype import DeviceType
-from .flashspeed import FlashSpeed
-
-MAXIMUM_DEVICES = 32
-
-class DeviceInfo(ctypes.Structure):
-    _fields_ = [ ('byType', ctypes.c_byte)]
+from .color import ColorToRGB
+from .constants import (Color,
+                        FlashSpeed,
+                        DeviceType,
+                        DeviceInfo,
+                        MAXIMUM_DEVICES,)
 
 class BlyncLightControl(object):
     '''
@@ -739,11 +737,14 @@ class BlyncLight(object):
     def status(self):
         '''
         '''
-        return { 'on': self.on,
-                 'color': self.color,
-                 'dim': self.dim,
-                 'flash': self.flash,
-                 'flash_speed': self.flash_speed.value }
+        return {
+            'device_id': self.device_id,
+            'on': self.on,
+            'color': self.color,
+            'dim': self.dim,
+            'flash': self.flash,
+            'flash_speed': self.flash_speed.value,
+        }
 
     @property
     def on(self):
