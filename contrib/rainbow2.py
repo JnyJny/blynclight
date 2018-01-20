@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-'''BlyncLights Love Rainbows.
+'''BlyncLights Love Rainbows!
 '''
 
 from blynclight import BlyncLightProxy
 from argparse import ArgumentParser
 from time import sleep
 from math import sin
+from itertools import cycle
 
 def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
     '''generator function that returns 'steps' rgb tuples.
@@ -58,10 +59,9 @@ if __name__ == '__main__':
     
     try:
         proxy.on(args.light_id)
-        while True:
-            for color in colors:
-                proxy.color(args.light_id, color)
-                sleep(interval)
+        for color in cycle(colors):
+            proxy.color(args.light_id, color)
+            sleep(interval)
     except KeyboardInterrupt:
         pass
     proxy.off(args.light_id)
