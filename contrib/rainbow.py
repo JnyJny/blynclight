@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-'''
+'''BlyncLights Love Rainbows!
 '''
 
 import math
 from blynclight import *
 from time import sleep
 from argparse import ArgumentParser
-
+from itertools import cycle
 
 def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
     '''generator function that returns 'steps' rgb tuples.
@@ -56,8 +56,9 @@ if __name__ == '__main__':
     
     try:
         b.on = True
-        while True:
-            b.cycle(colors, interval_ms=interval)
+        for color in cycle(colors):
+            b.color = color
+            sleep(interval)
     except KeyboardInterrupt:
         pass
     b.on = False
