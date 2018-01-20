@@ -41,9 +41,15 @@ def ColorToRGB(color):
 def HexToRGB(hexValue):
     '''
     '''
-    hexStr = hex(hexValue)[2:]
+
+    if isinstance(hexValue, str):
+        hexStr = hexValue[2:]
+    else:
+        hexStr = hex(hexValue)[2:]
+
+    f = lambda v: int(v, 16)
 
     if len(hexStr) == 6:
-        return tuple(map(int, [hexStr[:2], hexStr[2:4], hexStr[4:]]))
+        return tuple(map(f, [hexStr[:2], hexStr[2:4], hexStr[4:]]))
 
     raise ValueError(f'hex value out of bounds {hexValue}')
