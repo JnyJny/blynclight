@@ -1,18 +1,7 @@
 '''
 '''
 
-from enum import Enum
-
-class Color(Enum):
-    RED    = 0
-    GREEN  = 1
-    YELLOW = 2
-    PURPLE = 3
-    CYAN   = 4
-    BLUE   = 5
-    WHITE  = 6
-    ORANGE = 7
-    OFF    = 8
+from .constants import Color
 
 def ColorToRGB(color):
     '''
@@ -41,7 +30,6 @@ def ColorToRGB(color):
 def HexToRGB(hexValue):
     '''
     '''
-
     if isinstance(hexValue, str):
         hexStr = hexValue[2:]
     else:
@@ -53,3 +41,8 @@ def HexToRGB(hexValue):
         return tuple(map(f, [hexStr[:2], hexStr[2:4], hexStr[4:]]))
 
     raise ValueError(f'hex value out of bounds {hexValue}')
+
+def RGBToHex(rgb):
+    '''
+    '''
+    return f'0x{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}'
