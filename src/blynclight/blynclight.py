@@ -110,9 +110,7 @@ class BlyncLightControl(object):
 
         Returns the number of devices found.
         '''
-        n = ctypes.c_int(max_dev)
-        self._dll.FindDevices(ctypes.byref(n))
-        return n.value
+        return self._dll.init_blynclights()
 
     def release_devices(self):
         '''ReleaseDevices
@@ -120,7 +118,7 @@ class BlyncLightControl(object):
         This function releases the resources reserved for the devices
         up on calling the FindDevices function.  
         '''
-        self._dll.ReleaseDevices()
+        self._dll.fini_blynclights()
 
     def turn_off_light(self, light_id):
         '''TurnOffLight
