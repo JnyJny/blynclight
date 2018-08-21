@@ -41,14 +41,12 @@ TAR= tar
 
 shared_obj: $(SDK_PATH) $(BLC_SO)
 
-## XXX The SDK is delivered as a zip file but unzip
-##     doesn't unpack archives from stdout.  Luckily
-##     macOS tar knows how to unpack zips.
-
 $(SDK_PATH):
 	@$(CURL) -L $(URL) | $(TAR) xf -
 
 headers: $(HDRS)
+
+%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR)
 
 %.h: $(SDK_PATH)
 	@$(CP) $(SDK_PATH)/$(APIDIR)/$@ .
@@ -56,13 +54,16 @@ headers: $(HDRS)
 $(BLC_OBJ): $(SDK_PATH)
 	@$(AR) -x $(SDK_PATH)/$(APIDIR)/$(BLC_AR) $(BLC_OBJ)
 
-$(BLC_SO): $(BLC_OBJ)
-	$(CC) -o $@ $(BLC_OBJ) -fpic -shared
+$(BLC_SO): $(BLC_OBJ) patch.o
+	$(CC) -o $@ $(BLC_OBJ) patch.o -fpic -shared
 
-clean:
-	@$(RM) $(BLC_AR) $(BLC_OBJ) __MACOSX $(SDK_PATH) *~
+
+tidy:
+	@$(RM) $(BLC_OBJ) $(BLC_SO) patch.o *~
+
+clean: tidy
+	@$(RM) $(BLC_AR) __MACOSX $(SDK_PATH)  
 
 clobber: clean
 	@$(RM) $(BLC_SO) $(HDRS)
-
 
