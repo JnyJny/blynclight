@@ -19,7 +19,6 @@ LIB_DIR= ../src/blynclight/libs
 
 INSTALL_PATH= $(LIB_DIR)/$(shell uname)
 
-
 install: $(TARGET)
 	@mkdir -p $(INSTALL_PATH)
-	@$(MV) $(TARGET) $(INSTALL_PATH)/$(TARGET)
+	$(MV) $(TARGET) $(INSTALL_PATH)/$(TARGET)

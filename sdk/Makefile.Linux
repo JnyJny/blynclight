@@ -24,12 +24,12 @@ SDK_PATH=    EmbravaSdkForLinux
 TARGET=  libblynclightcontrol.so
 APIDIR=  EmbravaApi
 BLC=     embravaapi
-BLC_OBJ= $(BLC).o
+BLC_OBJ= $(BLC).o hid-libusb.o
 BLC_LIB= lib$(BLC)
 BLC_AR=  $(BLC_LIB).a
 BLC_SO=  $(TARGET)
 
-HDRS= constants.h embravaapi.h hdiapi.h
+LIBS= -lhidapi-hidraw -lusb-1.0
 
 AR= ar
 CC= cc
@@ -39,30 +39,28 @@ MV= mv
 RM= rm -rf
 TAR= jar x
 
+all: install
+
 shared_obj: $(SDK_PATH) $(BLC_SO)
 
 $(SDK_PATH):
 	@$(CURL) -L $(URL) | $(TAR)
 
-headers: $(HDRS)
-
-%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR) -fpic
-
-%.h: $(SDK_PATH)
-	@$(CP) $(SDK_PATH)/$(APIDIR)/$@ .
+%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR) -std=gnu99 -fPIC
 
 $(BLC_OBJ): $(SDK_PATH)
 	@$(AR) -x $(SDK_PATH)/$(APIDIR)/$(BLC_AR) $(BLC_OBJ)
 
-$(BLC_SO): $(BLC_OBJ) patch.o
-	$(CC) -o $@ $(BLC_OBJ) patch.o -fpic -shared
+$(BLC_SO): $(BLC_OBJ) linux_patch.o
+	$(CC) -o $@ $(BLC_OBJ) linux_patch.o -fPIC -shared $(LIBS)
 
+install: $(BLC_SO)
 
 tidy:
-	@$(RM) $(BLC_OBJ) $(BLC_SO) patch.o *~
+	@$(RM) $(BLC_OBJ) $(BLC_SO) linux_patch.o *~
 
 clean: tidy
-	@$(RM) $(BLC_AR) __MACOSX $(SDK_PATH)  
+	@$(RM) $(BLC_AR) $(SDK_PATH)  
 
 clobber: clean
 	@$(RM) $(BLC_SO) $(HDRS)

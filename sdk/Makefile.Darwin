@@ -37,12 +37,12 @@ CP= cp
 CURL= curl
 MV= mv
 RM= rm -rf
-TAR= tar
+TAR= jar x
 
 shared_obj: $(SDK_PATH) $(BLC_SO)
 
 $(SDK_PATH):
-	@$(CURL) -L $(URL) | $(TAR) xf -
+	@$(CURL) -L $(URL) | $(TAR)
 
 headers: $(HDRS)
 
@@ -54,12 +54,12 @@ headers: $(HDRS)
 $(BLC_OBJ): $(SDK_PATH)
 	@$(AR) -x $(SDK_PATH)/$(APIDIR)/$(BLC_AR) $(BLC_OBJ)
 
-$(BLC_SO): $(BLC_OBJ) patch.o
-	$(CC) -o $@ $(BLC_OBJ) patch.o -fpic -shared
+$(BLC_SO): $(BLC_OBJ) macos_patch.o
+	$(CC) -o $@ $(BLC_OBJ) macos_patch.o -fpic -shared
 
 
 tidy:
-	@$(RM) $(BLC_OBJ) $(BLC_SO) patch.o *~
+	@$(RM) $(BLC_OBJ) $(BLC_SO) macos_patch.o *~
 
 clean: tidy
 	@$(RM) $(BLC_AR) __MACOSX $(SDK_PATH)  
