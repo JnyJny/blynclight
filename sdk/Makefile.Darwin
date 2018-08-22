@@ -46,7 +46,7 @@ $(SDK_PATH):
 
 headers: $(HDRS)
 
-%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR)
+%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR) -fPIC
 
 %.h: $(SDK_PATH)
 	@$(CP) $(SDK_PATH)/$(APIDIR)/$@ .
@@ -55,7 +55,7 @@ $(BLC_OBJ): $(SDK_PATH)
 	@$(AR) -x $(SDK_PATH)/$(APIDIR)/$(BLC_AR) $(BLC_OBJ)
 
 $(BLC_SO): $(BLC_OBJ) macos_patch.o
-	$(CC) -o $@ $(BLC_OBJ) macos_patch.o -fpic -shared
+	$(CC) -o $@ $(BLC_OBJ) macos_patch.o -fPIC -shared
 
 
 tidy:
