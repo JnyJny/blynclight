@@ -2,14 +2,15 @@
 import ctypes
 import os
 import time
+import platform
 from pathlib import Path
 
 from .color import ColorToRGB
 from .constants import (Color,
                         FlashSpeed,
                         DeviceType,
-                        DeviceInfo,
-                        MAXIMUM_DEVICES,)
+                        DeviceInfo)
+
 
 class BlyncLightControl(object):
     '''
@@ -54,7 +55,6 @@ class BlyncLightControl(object):
         if self._blc:
             raise Exception('BlyncLightControl is a singleton')
         
-        self.find_devices()
 
     def __del__(self):
         '''Releases all configured devices when deleted.
@@ -79,38 +79,17 @@ class BlyncLightControl(object):
         func.restype = retval
         return func
     
+
     @property
     def devices(self):
-        ''' List of DeviceInfo structures of length MAXIMUM_DEVICES {}
-        '''.format(MAXIMUM_DEVICES)
-
-        self.find_devices()
-        DeviceInfo_32 = ctypes.POINTER(DeviceInfo * MAXIMUM_DEVICES)
-        devices = ctypes.cast(self._dll.asDeviceInfo, DeviceInfo_32)
-        return [DeviceType(d.byType) for d in devices.contents]
-
-
-    def device_type(self, light_id):
-        '''Returns a DeviceType enumeration for the device referenced
-        by the light_id.
-
-        light_id: device index
-        
-        Returns a DeviceType.
+        ''' List of DeviceInfo
         '''
-        return DeviceType(self.devices.contents[light_id].byType)
-        
-        
-    def find_devices(self, max_dev=MAXIMUM_DEVICES):
-        '''FindDevices
 
-        This function searches for the Blync devices connected to the
-        System’s USB ports. This function call can be used for all
-        types of devices and reserves resources for device access.
+        self._dll.init_blynclights()
+        DeviceInfo_p = ctypes.POINTER(DeviceInfo * self._dll.MAXDEV)
+        devs = ctypes.cast(self._dll.asDeviceInfo, DeviceInfo_p)
+        return [DeviceType(d.byType) for d in devs.contents if d.byType]
 
-        Returns the number of devices found.
-        '''
-        return self._dll.init_blynclights()
 
     def release_devices(self):
         '''ReleaseDevices
@@ -120,12 +99,13 @@ class BlyncLightControl(object):
         '''
         self._dll.fini_blynclights()
 
+
     def turn_off_light(self, light_id):
         '''TurnOffLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function releases the resources reserved for the devices
         up on calling the FindDevices function.
@@ -137,12 +117,13 @@ class BlyncLightControl(object):
         self._turn_off_light = self._fixup('TurnOffLight')
         return self._turn_off_light(light_id)
 
+
     def turn_on_green_light(self, light_id):
         '''TurnOnGreenLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in green color. This function call can be used
@@ -156,12 +137,13 @@ class BlyncLightControl(object):
         self._turn_on_green_light = self._fixup('TurnOnGreenLight')
         return self._turn_on_green_light(light_id)
 
+
     def turn_on_red_light(self, light_id):
         '''TurnOnRedLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in red color. This function call can be used for
@@ -174,12 +156,13 @@ class BlyncLightControl(object):
         self._turn_on_red_light = self._fixup('TurnOnRedLight')
         return self._turn_on_red_light(light_id)
 
+
     def turn_on_magenta_light(self, light_id):
         '''TurnOnMagentaLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in magenta (purple) color. This function call
@@ -192,12 +175,13 @@ class BlyncLightControl(object):
         self._turn_on_magenta_light = self._fixup('TurnOnMagentaLight')
         return self._turn_on_magenta_light(light_id)
 
+
     def turn_on_yellow_light(self, light_id):
         '''TurnOnYellowLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
         
         This function lights the Blync device specified by
         byDeviceIndex in yellow color. This function call can be used
@@ -211,12 +195,13 @@ class BlyncLightControl(object):
         self._turn_on_yellow_light = self._fixup('TurnOnYellowLight')
         return self._turn_on_yellow_light(light_id)    
 
+
     def turn_on_blue_light(self, light_id):
         '''TurnOnBlueLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in blue color. This function call can be used
@@ -229,12 +214,13 @@ class BlyncLightControl(object):
         self._turn_on_blue_light = self._fixup('TurnOnBlueLight')
         return self._turn_on_blue_light(light_id)
 
+
     def turn_on_cyan_light(self, light_id):
         '''TurnOnCyanLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in cyan color.  This function call can be used
@@ -247,12 +233,13 @@ class BlyncLightControl(object):
         self._turn_on_cyan_light = self._fixup('TurnOnCyanLight')
         return self._turn_on_cyan_light(light_id)
 
+
     def turn_on_white_light(self, light_id):
         '''TurnOnWhiteLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in white color. This function call can be used
@@ -265,12 +252,13 @@ class BlyncLightControl(object):
         self._turn_on_white_light = self._fixup('TurnOnWhiteLight')
         return self._turn_on_white_light(light_id)
 
+
     def turn_on_orange_light(self, light_id):
         '''TurnOnOrangeLight
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in orange color. This function call can be used
@@ -285,6 +273,7 @@ class BlyncLightControl(object):
         self._turn_on_orange_light = self._fixup('TurnOnOrangeLight')
         return self._turn_on_orange_light(light_id)
 
+
     def turn_on_rgb_lights(self, light_id, red, green, blue):
         '''TurnOnRGBLights
 
@@ -293,7 +282,7 @@ class BlyncLightControl(object):
            green: unsigned 8 bit quantity, 0 to 255
             blue: unsigned 8 bit quantity, 0 to 255
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function lights the Blync device specified by
         byDeviceIndex in the color which represents the combination of
@@ -312,12 +301,13 @@ class BlyncLightControl(object):
                                                proto=[ctypes.c_byte] * 4)
         return self._turn_on_rgb_lights(light_id, red, green, blue)
 
+
     def turn_on_v30_light(self, light_id):
         '''TurnOnV30Light
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
         '''
         try:
             return self._turn_on_v30_light(light_id)
@@ -326,12 +316,13 @@ class BlyncLightControl(object):
         self._turn_on_v30_light = self._fixup('TurnOnV30Light')
         return self._turn_on_v30_light(light_id)
 
+
     def turn_off_v30_light(self, light_id):
         '''TurnOffV30Light
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
         '''
         try:
             return self._turn_off_v30_light(light_id)
@@ -340,13 +331,14 @@ class BlyncLightControl(object):
         self._turn_off_v30_light = self._fixup('TurnOffV30Light')
         return self._turn_off_v30_light(light_id)
 
+
     def set_red_color(self, light_id, level):
         '''SetRedColorBrightnessLevel
 
         light_id: device index
            level: unsigned 8 bit quantity, 0 to 255
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         '''
         try:
@@ -357,13 +349,14 @@ class BlyncLightControl(object):
                                       proto=[ctypes.c_byte]*2)
         return self._red_color(light_id, level)
 
+
     def set_green_color(self, light_id, level):
         '''SetGreenColorBrightnessLevel
 
         light_id: device index
            level: unsigned 8 bit quantity, 0 to 255
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
         '''
         try:
             return self._green_color(light_id, level)
@@ -373,13 +366,14 @@ class BlyncLightControl(object):
                                       proto=[ctypes.c_byte]*2)
         return self._green_color(light_id, level)    
 
+
     def set_blue_color(self, light_id, level):
         '''SetBlueColorBrightnessLevel
 
         light_id: device index
            level: unsigned 8 bit quantity, 0 to 255
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
         '''
         try:
             return self._blue_color(light_id, level)
@@ -389,12 +383,13 @@ class BlyncLightControl(object):
                                       proto=[ctypes.c_byte]*2)
         return self._blue_color(light_id, level)
 
+
     def start_light_flash(self, light_id):
         '''StartLightFlash
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function starts the light to blink at the specified
         blinking speed. This function call can be used only for the
@@ -413,12 +408,13 @@ class BlyncLightControl(object):
 
         return self._start_light_flash(light_id)
 
+
     def stop_light_flash(self, light_id):
         '''StopLightFlash
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function stops blinking the light. This function call can
         be used only for the following types of devices namely
@@ -433,13 +429,14 @@ class BlyncLightControl(object):
         self._stop_light_flash = self._fixup('StopLightFlash')
         return self._stop_light_flash(light_id)
 
+
     def select_light_flash_speed(self, light_id, speed):
         '''SelectLightFlashSpeed
 
         light_id: device index
            speed: 1=LOW, 2=MEDIUM, 3=HIGH
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function selects the speed at which the light will
         blink. This function call can be used only for the following
@@ -459,12 +456,13 @@ class BlyncLightControl(object):
                                                      proto=[ctypes.c_byte]*2)
         return self._select_light_flash_speed(light_id, speed)
 
+
     def set_light_dim(self, light_id):
         '''SetLightDim
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function makes the current light brightness to dim by 50%
         of the full brightness. This function call can be used only
@@ -480,12 +478,13 @@ class BlyncLightControl(object):
         self._set_light_dim = self._fixup('SetLightDim')
         return self._set_light_dim(light_id)
 
+
     def clr_light_dim(self, light_id):
         '''ClearLightDim
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function resets the light dimness and bring the light
         brightness to full level. This function call can be used only
@@ -501,13 +500,14 @@ class BlyncLightControl(object):
         self._clr_light_dim = self._fixup('ClearLightDim')
         return self._clr_light_dim(light_id)
 
+
     def select_music_to_play(self, light_id, music_id):
         '''SelectMusicToPlay
 
         light_id: device index
         music_id: music index
 
-        Returns 0 for sucess, 1 for failure.
+        Returns 0 for success, 1 for failure.
 
         This function selects the music to be played on the Blync
         light. This function call can be used only for the following
@@ -524,12 +524,13 @@ class BlyncLightControl(object):
                                                  proto=[ctypes.c_byte]*2)
         return self._select_music_top_play(light_id, music_id)
 
+
     def start_music_play(self, light_id):
         '''StartMusicPlay
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.        
+        Returns 0 for success, 1 for failure.        
 
         This function starts playing the selected music on the Blync
         light. This function call can be used only for the following
@@ -544,12 +545,13 @@ class BlyncLightControl(object):
         self._start_music_play = self._fixup('StartMusicPlay')
         return self._start_music_play(light_id)
 
+
     def stop_music_play(self, light_id):
         '''StopMusicPlay
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.        
+        Returns 0 for success, 1 for failure.        
 
         This function stops playing the music that is being played on
         the Blync light. This function call can be used only for the
@@ -563,12 +565,13 @@ class BlyncLightControl(object):
         self._stop_music_play = self._fixup('StartMusicPlay')
         return self._stop_music_play(light_id)
 
+
     def set_music_repeat(self, light_id):
         '''SetMusicRepeat
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.        
+        Returns 0 for success, 1 for failure.        
 
         This function enables the repeated playing of the music that
         is being played on the Blync light, till the repeat flag gets
@@ -584,12 +587,13 @@ class BlyncLightControl(object):
         self._set_music_repeat = self._fixup('SetMusicRepeat')
         return self._set_music_repeat(light_id)
 
+
     def clr_music_repeat(self, light_id):
         '''ClearMusicRepeat
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.        
+        Returns 0 for success, 1 for failure.        
 
         This function clears repeated playing of the music that is
         being played on the Blync light, so that any music to be
@@ -605,12 +609,13 @@ class BlyncLightControl(object):
         self._clr_music_repeat = self._fixup('ClearMusicRepeat')
         return self._clr_music_repeat(light_id)
 
+
     def set_volume_mute(self, light_id):
         '''SetVolumeMute
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.        
+        Returns 0 for success, 1 for failure.        
 
         This function mutes the volume level of the music that is
         being played on the Blync light, so that if any music is being
@@ -626,12 +631,13 @@ class BlyncLightControl(object):
         self._set_volume_mute = self._fixup('SetVolumeMute')
         return self._set_volume_mute(light_id)
 
+
     def clr_volume_mute(self, light_id):
         '''ClearVolumeMute
 
         light_id: device index
 
-        Returns 0 for sucess, 1 for failure.        
+        Returns 0 for success, 1 for failure.        
 
         This function clears the volume mute on Blync light. So that
         if any music is being played it will be audible. This function
@@ -647,13 +653,14 @@ class BlyncLightControl(object):
         self._clr_volume_mute = self._fixup('SetVolumeMute')
         return self._clr_volume_mute(light_id)
 
+
     def set_music_volume(self, light_id, level):
         '''SetMusicVolume
 
         light_id: device index
            level: volume
 
-        Returns 0 for sucess, 1 for failure.        
+        Returns 0 for success, 1 for failure.        
 
         This function sets the volume level of the music that is being
         played on the Blync light. This function call can be used only
@@ -669,6 +676,7 @@ class BlyncLightControl(object):
                                              proto=[ctypes.c_byte]*2)
         return self._set_music_volume(light_id, level)
 
+
     def get_device_unique_id(self, light_id):
         '''GetDeviceUniqueId
 
@@ -682,9 +690,8 @@ class BlyncLightControl(object):
         Blynclight Plus, Standard, Mini, Wireless and Embrava Embedded
         devices.
         '''
-        n = ctypes.c_int()
-        self._dll.GetDeviceUniqueId(light_id, ctypes.byref(n))
-        return n.value
+        # sdk/patch.h  int unique_device_id(unsigned char *devIndex)
+        return self._dll.unique_device_id(light_id)
 
     
 class BlyncLight(object):
@@ -725,6 +732,11 @@ class BlyncLight(object):
         '''
         '''
         return f'{self.__class__.__name__}(id={self.device_id})'
+
+    def __str__(self):
+        '''
+        '''
+        return '\n'.join(f'{k}: {v}' for k,v in self.status.items())
 
     def __del__(self):
         '''Resets the light before releasing it.

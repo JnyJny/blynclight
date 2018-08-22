@@ -27,12 +27,15 @@ Control lights via http API:
 
 '''
 
+from .blynclight2 import BlyncLightAPI, Light
+
 from .blynclight import BlyncLightControl, BlyncLight
 from .color import ColorToRGB, HexToRGB, RGBToHex
 from .constants import (Color, DeviceType, DeviceInfo, FlashSpeed)
 from .proxy import Proxy as BlyncLightProxy
 
 __all__ = [
+    'BlyncLightAPI', 'Light',
     'BlyncLight',
     'BlyncLightControl',
     'ColorToRGB',
