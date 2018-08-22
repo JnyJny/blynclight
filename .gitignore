@@ -11,3 +11,4 @@ sdk/__MACOSX
 sdk/*.o
 sdk/embrava-sdk/*
 sdk/EmbravaSdkForLinux
+src/blynclight/.boneyard/*
