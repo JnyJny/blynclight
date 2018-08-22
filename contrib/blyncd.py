@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import hug
-from blynclight import BlyncLightControl as BLC
+from blynclight import BlyncLight
 from blynclight import HexToRGB
 
 @hug.object.urls('/')
@@ -16,7 +16,7 @@ class BlyncDaemon(object):
             return self._lights
         except AttributeError:
             pass
-        self._lights = [BLC.getLight(i) for i,t in BLC.available_lights()]
+        self._lights = [BlyncLight(i) for i in BlyncLight.available()]
         return self._lights
 
     @hug.object.get('/blynclight/status')

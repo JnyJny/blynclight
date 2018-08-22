@@ -4,7 +4,7 @@
 '''
 
 import math
-from blynclight import *
+from blynclight import BlyncLight
 from time import sleep
 from argparse import ArgumentParser
 from itertools import cycle
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     colors.extend(list(reversed(colors)))
 
-    b = BlyncLightControl.getLight(args.light_id, color=(0,0,0))
+    b = BlyncLight(args.light_id, r=0, g=0, b=0)
 
     interval = (args.speed * 100)
     
