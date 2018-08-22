@@ -13,6 +13,8 @@ struct DeviceInfo
 #endif
 
 #ifdef __APPLE__
+typedef unsigned char Byte;
+typedef unsigned char byte;
 #include "Constants.h"
 #include "blynclightcontrol.h"
 #define MAXDEV MAXIMUM_DEVICES
