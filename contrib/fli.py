@@ -3,18 +3,20 @@
 '''Flash Lights Impressively
 '''
 
-from blynclight import BlyncLightControl
+from blynclight import BlyncLight
+from itertools import cycle
 
 if __name__ == '__main__':
 
-    light = BlyncLightControl.getLight(0)
+    light = BlyncLight()
 
     colors = [ (255,0,0), (0,0,255) ]
 
     try:
         light.on = True
-        while True:
-            light.cycle(colors, interval_ms=0)
+        for color in cycle(colors):
+            light.color = color
+            
     except KeyboardInterrupt:
         pass
     light.on = False

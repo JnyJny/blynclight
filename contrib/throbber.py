@@ -4,9 +4,10 @@
 '''
 
 import math
-from blynclight import *
+from blynclight import BlyncLight
 from time import sleep
 from argparse import ArgumentParser
+from itertools import cycle
 
 def Gradient(start, stop, step, red=True, green=False, blue=False):
     '''
@@ -55,14 +56,15 @@ if __name__ == '__main__':
 
     colors.extend(list(reversed(colors)))
 
-    b = BlyncLightControl.getLight(args.light_id, color=(0,0,0))
+    b = BlyncLight(args.light_id, r=0, g=0, b=0)
 
     b.dim = args.dim
     
     try:
         b.on = True
         while True:
-            b.cycle(colors, interval_ms=0)
+            for color in cycle(colors):
+                b.color = color
     except KeyboardInterrupt:
         pass
     b.on = False
