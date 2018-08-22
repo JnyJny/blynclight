@@ -2,7 +2,28 @@
 
 import hug
 from blynclight import BlyncLight
-from blynclight import HexToRGB
+
+
+def HexToRGB(hexValue):
+    '''
+    '''
+    if isinstance(hexValue, str):
+        hexStr = hexValue[2:]
+    else:
+        hexStr = hex(hexValue)[2:]
+
+    f = lambda v: int(v, 16)
+
+    if len(hexStr) == 6:
+        return tuple(map(f, [hexStr[:2], hexStr[2:4], hexStr[4:]]))
+
+    raise ValueError(f'hex value out of bounds {hexValue}')
+
+def RGBToHex(rgb):
+    '''
+    '''
+    return f'0x{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}'
+
 
 @hug.object.urls('/')
 class BlyncDaemon(object):
