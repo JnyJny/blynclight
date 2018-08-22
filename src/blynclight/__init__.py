@@ -5,8 +5,8 @@ BlyncLight family of devices.
 
 Control lights directly:
 
-> from blynclight import BlyncLightControl
-> b = BlyncLightControl.getLight(0)
+> from blynclight import BlyncLight
+> b = BlyncLight()
 > b.color = (0, 255, 0)                         # set color to green
 > b.on = True                                   # turn light on
 > b.color = (255, 0, 0)                         # set color to red
@@ -27,23 +27,12 @@ Control lights via http API:
 
 '''
 
-from .blynclight2 import BlyncLightAPI, Light
-
-from .blynclight import BlyncLightControl, BlyncLight
-from .color import ColorToRGB, HexToRGB, RGBToHex
-from .constants import (Color, DeviceType, DeviceInfo, FlashSpeed)
+from .blynclight import BlyncLight
+from .constants import FlashSpeed
 from .proxy import Proxy as BlyncLightProxy
 
 __all__ = [
-    'BlyncLightAPI', 'Light',
     'BlyncLight',
-    'BlyncLightControl',
-    'ColorToRGB',
-    'HexToRGB',
-    'RGBToHex',
-    'Color',
-    'DeviceType',
-    'DeviceInfo',
     'FlashSpeed',
     'BlyncLightProxy',
 ]
