@@ -41,7 +41,8 @@ unsigned int unique_device_id(unsigned char devIndex)
 
 #ifdef __linux
 
-#include "Constants.h"
+#include "constants.h"
+#include "hidapi.h"
 #include "embravaapi.h"
 
 struct DeviceInfo

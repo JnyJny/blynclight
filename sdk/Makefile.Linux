@@ -23,13 +23,13 @@ SDK_PATH=    EmbravaSdkForLinux
 
 TARGET=  libblynclightcontrol.so
 APIDIR=  EmbravaApi
-BLC=     blynclightcontrol
+BLC=     embravaapi
 BLC_OBJ= $(BLC).o
 BLC_LIB= lib$(BLC)
 BLC_AR=  $(BLC_LIB).a
 BLC_SO=  $(TARGET)
 
-HDRS= constants.h blynclightcontrol.h hdiapi.h
+HDRS= constants.h embravaapi.h hdiapi.h
 
 AR= ar
 CC= cc
@@ -37,16 +37,16 @@ CP= cp
 CURL= curl
 MV= mv
 RM= rm -rf
-TAR= jar
+TAR= jar x
 
 shared_obj: $(SDK_PATH) $(BLC_SO)
 
 $(SDK_PATH):
-	@$(CURL) -L $(URL) | $(TAR) xf -
+	@$(CURL) -L $(URL) | $(TAR)
 
 headers: $(HDRS)
 
-%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR)
+%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR) -fpic
 
 %.h: $(SDK_PATH)
 	@$(CP) $(SDK_PATH)/$(APIDIR)/$@ .
