@@ -1,0 +1,36 @@
+
+unsigned char FindDevices (int *pnNumberOfBlyncDevices);
+void ReleaseDevices (void);
+
+int TurnOnGreenLight (unsigned char byDeviceIndex);
+int TurnOnRedLight (unsigned char  byDeviceIndex);
+int TurnOnMagentaLight (unsigned char  byDeviceIndex);
+int TurnOnYellowLight (unsigned char  byDeviceIndex);
+int TurnOnBlueLight (unsigned char  byDeviceIndex);
+int TurnOnCyanLight (unsigned char  byDeviceIndex);
+int TurnOnWhiteLight (unsigned char  byDeviceIndex);
+int TurnOnOrangeLight (unsigned char  byDeviceIndex);
+int TurnOffLight (unsigned char  byDeviceIndex);
+
+int TurnOnRGBLights(Byte byDeviceIndex, Byte byRedLevel, Byte byGreenLevel, Byt
+int TurnOnV30Light (Byte byDeviceIndex);
+int TurnOffV30Light (Byte byDeviceIndex);
+
+int SetRedColorBrightnessLevel(Byte byDeviceIndex, Byte byBrightnessLevel);
+int SetGreenColorBrightnessLevel (Byte byDeviceIndex, Byte byBrightnessLevel);
+int SetBlueColorBrightnessLevel (Byte byDeviceIndex, Byte byBrightnessLevel);
+int StartLightFlash (Byte byDeviceIndex);
+int StopLightFlash (Byte byDeviceIndex);
+int SelectLightFlashSpeed (Byte byDeviceIndex, Byte bySelectedFlashSpeed);
+int SelectMusicToPlay(Byte byDeviceIndex, Byte bySelectedMusic);
+int StartMusicPlay(Byte byDeviceIndex);
+int StopMusicPlay(Byte byDeviceIndex);
+int SetMusicRepeat(Byte byDeviceIndex);
+int ClearMusicRepeat(Byte byDeviceIndex);
+int SetVolumeMute(Byte byDeviceIndex);
+int ClearVolumeMute(Byte byDeviceIndex);
+int SetMusicVolume(Byte byDeviceIndex, Byte byVolumeLevel);
+int SetLightDim(Byte byDeviceIndex);
+int ClearLightDim(Byte byDeviceIndex);
+
+int GetDeviceUniqueId (Byte byDeviceIndex, uint *punDeviceId);
