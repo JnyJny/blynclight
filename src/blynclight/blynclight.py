@@ -37,22 +37,18 @@ class BlyncLightAPI:
     }
 
     def __init__(self):
-
+        '''
+        '''
         for fname, interface in self._funcs.items():
             func = getattr(self.lib, fname)
             func.argtypes, func.restype = interface
             setattr(self, fname, func)
-        self.lib.init_blynclights()
+        self.nlights = self.lib.init_blynclights()
 
     def __del__(self):
-        
+        '''
+        '''
         self.lib.fini_blynclights(self.nlights)
-
-    @property
-    def nlights(self):
-        '''
-        '''
-        return self.lib.init_blynclights()
 
     @property
     def lib_path(self):
@@ -83,23 +79,21 @@ class BlyncLightAPI:
 class BlyncLight:
     '''
     '''
+    api = None
 
     @classmethod
     def available(cls):
-        raise NotImplementedError('available')
+        if not cls.api:
+            cls.api = BlyncLightAPI()
+        return range(cls.api.nlights)
     
-    def __init__(self, device=0, r=0x0, g=0xff, b=0x0, on=False, api=None):
+    def __init__(self, device=0, r=0x0, g=0xff, b=0x0, on=False):
         '''
         '''
         self.device = device
-        self.api = api or BlyncLightAPI()
+        self.api = self.api or BlyncLightAPI()
         self.color = (r, g, b)
         self.on = on 
-
-    def __del__(self):
-        '''
-        '''
-        del(self.api)
 
     def __repr__(self):
         '''
