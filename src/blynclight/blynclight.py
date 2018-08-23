@@ -4,7 +4,7 @@
 from ctypes import cdll, c_byte, c_int
 from pathlib import Path
 from platform import system
-from .constants import FlashSpeed
+from .constants import FlashSpeed, DeviceType
 
 class BlyncLight_API:
 
@@ -16,6 +16,12 @@ class BlyncLight_API:
         '''
         api = cls()
         return [BlyncLight(n, api=api) for n in range(api.nlights)]
+
+    @classmethod
+    def first_light(cls):
+        '''
+        '''
+        return cls.available_lights()[0]
     
     _funcs = {
         'init_blynclights':    ([],         c_int),
@@ -61,20 +67,6 @@ class BlyncLight_API:
         return self.lib.refresh_blynclights()
 
     @property
-    def lib_path(self):
-        '''
-        '''
-        try:
-            return self._lib_path
-        except AttributeError:
-            pass
-        self._lib_path = Path(__file__).absolute().parent 
-        self._lib_path = self._lib_path / 'libs'
-        self._lib_path = self._lib_path / system()
-        self._lib_path = self._lib_path / 'libblynclightcontrol.so'
-        return self._lib_path
-
-    @property
     def lib(self):
         '''
         '''
@@ -82,7 +74,11 @@ class BlyncLight_API:
             return self._lib
         except AttributeError:
             pass
-        self._lib = cdll.LoadLibrary(self.lib_path)
+        path = Path(__file__).absolute().parent 
+        path = path / 'libs'
+        path = path / system()
+        path = path / 'libblynclightcontrol.so'
+        self._lib = cdll.LoadLibrary(path)
         return self._lib
 
     
@@ -128,6 +124,12 @@ class BlyncLight:
                  'play'        : self.play,
                  'repeat'      : self.repeat,
              }
+
+    @property
+    def device_type(self):
+        '''
+        '''
+        return DeviceType(self.api.device_type(self.device))
 
     @property
     def color(self):
