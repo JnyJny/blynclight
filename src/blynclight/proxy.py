@@ -3,7 +3,6 @@
 
 import requests
 import json
-from .color import RGBToHex
 
 class Proxy(object):
     '''
@@ -52,8 +51,8 @@ class Proxy(object):
         '''
         '''
         if isinstance(value, tuple):
-            # convert to tuple to string
-            value = RGBToHex(value)
+            # convert tuple to string
+            value = '0x'+''.join(['{02x}'.format(v) for v in value])
             
         if isinstance(value, int):
             # convert int to hex string
