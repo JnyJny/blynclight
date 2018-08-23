@@ -2,7 +2,7 @@
 
 #include "blynclight_api.h"
 
-static int ndevices = 0;
+int ndevices = 0;
 
 int init_blynclights(void) 
 {
@@ -10,7 +10,7 @@ int init_blynclights(void)
   return ndevices;
 }
 
-void fini_blynclights(int ndevices)
+void fini_blynclights(void)
 {
   ReleaseDevices(ndevices);
 }
