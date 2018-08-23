@@ -46,7 +46,9 @@ $(SDK_PATH):
 
 headers: $(HDRS)
 
-%.o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR) -fPIC
+BLYNCLIGHT_API= blynclight_api
+
+$(BLYNCLIGHT_API).o: CFLAGS+=-I$(SDK_PATH)/$(APIDIR) -fPIC
 
 %.h: $(SDK_PATH)
 	@$(CP) $(SDK_PATH)/$(APIDIR)/$@ .
@@ -54,12 +56,12 @@ headers: $(HDRS)
 $(BLC_OBJ): $(SDK_PATH)
 	@$(AR) -x $(SDK_PATH)/$(APIDIR)/$(BLC_AR) $(BLC_OBJ)
 
-$(BLC_SO): $(BLC_OBJ) macos_patch.o
-	$(CC) -o $@ $(BLC_OBJ) macos_patch.o -fPIC -shared
+$(BLC_SO): $(BLC_OBJ) $(BLYNCLIGHT_API).o
+	$(CC) -o $@ $(BLC_OBJ) $(BLYNCLIGHT_API).o -fPIC -shared
 
 
 tidy:
-	@$(RM) $(BLC_OBJ) $(BLC_SO) macos_patch.o *~
+	@$(RM) $(BLC_OBJ) $(BLC_SO) $(BLYNCLIGHT_API).o *~
 
 clean: tidy
 	@$(RM) $(BLC_AR) __MACOSX $(SDK_PATH)  
