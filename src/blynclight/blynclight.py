@@ -6,7 +6,7 @@ from pathlib import Path
 from platform import system
 from .constants import FlashSpeed
 
-class BlyncLightAPI:
+class BlyncLight_API:
 
     _instance = None
 
@@ -14,14 +14,15 @@ class BlyncLightAPI:
     def available_lights(cls):
         '''
         '''
-        return [BlyncLight(n) for n in range(self.nlights)]
+        api = cls()
+        return [BlyncLight(n, api=api) for n in range(api.nlights)]
     
     _funcs = {
         'init_blynclights':    ([],         c_int),
         'fini_blynclights':    ([c_int],    None),
         'refresh_blynclights': ([],         c_int),
         'device_type':         ([c_byte],   c_byte),
-        'rgb_on':              ([c_byte]*4, c_int),
+        'light_on':            ([c_byte]*4, c_int),
         'light_off':           ([c_byte],   c_int),
         'bright':              ([c_byte]*2, c_int),
         'flash':               ([c_byte]*2, c_int),
@@ -37,9 +38,11 @@ class BlyncLightAPI:
     def __init__(self):
         '''
         '''
-        if _instance:
+
+        if self._instance:
             self.nlights = self.refresh()
             return
+
         self._instance = self
         for fname, interface in self._funcs.items():
             func = getattr(self.lib, fname)
@@ -86,19 +89,12 @@ class BlyncLightAPI:
 class BlyncLight:
     '''
     '''
-    api = None
-
-    @classmethod
-    def available(cls):
-        if not cls.api:
-            cls.api = BlyncLightAPI()
-        return range(cls.api.nlights)
     
-    def __init__(self, device=0, r=0x0, g=0xff, b=0x0, on=False):
+    def __init__(self, device=0, r=0x0, g=0xff, b=0x0, on=False, api=None):
         '''
         '''
         self.device = device
-        self.api = self.api or BlyncLightAPI()
+        self.api = api
         self.color = (r, g, b)
         self.on = on 
 
@@ -149,7 +145,7 @@ class BlyncLight:
         self._color = colorTuple
         if self.on:
             r,g,b = colorTuple
-            self.api.rgb_on(self.device, r, g, b)
+            self.api.light_on(self.device, r, g, b)
 
     @property
     def on(self):
@@ -165,7 +161,7 @@ class BlyncLight:
         self._on = bool(value)
         if self._on:
             r,g,b = self.color
-            self.api.rgb_on(self.device, r, g, b)
+            self.api.light_on(self.device, r, g, b)
         else:
             self.api.light_off(self.device)
 
