@@ -31,7 +31,7 @@ typedef unsigned char byte;
 #endif
 
 int  init_blynclights(void);
-void fini_blynclights(int ndevices);
+void fini_blynclights(void);
 int  refresh_blynclights(void);
 
 byte device_type(byte index);
