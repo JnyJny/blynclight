@@ -7,38 +7,40 @@ from platform import system
 from .constants import FlashSpeed
 
 class BlyncLightAPI:
+
+    _instance = None
+
+    @classmethod
+    def available_lights(cls):
+        '''
+        '''
+        return [BlyncLight(n) for n in range(self.nlights)]
     
     _funcs = {
-        'init_blynclights': ([],         c_int),
-        'fini_blynclights': ([c_int],    None),
-        'red_on':           ([c_byte],   c_int),
-        'green_on':         ([c_byte],   c_int),
-        'blue_on':          ([c_byte],   c_int),
-        'cyan_on':          ([c_byte],   c_int),
-        'magenta_on':       ([c_byte],   c_int),
-        'yellow_on':        ([c_byte],   c_int),
-        'white_on':         ([c_byte],   c_int),
-        'orange_on':        ([c_byte],   c_int),
-        'rgb_on':           ([c_byte]*4, c_int),
-        'light_off':        ([c_byte],   c_int),
-        'flash_on':         ([c_byte],   c_int),
-        'flash_off':        ([c_byte],   c_int),
-        'flash_speed':      ([c_byte]*2, c_int),
-        'music_select':     ([c_byte]*2, c_int),
-        'music_play':       ([c_byte],   c_int),
-        'music_stop':       ([c_byte],   c_int),
-        'music_repeat_on':  ([c_byte],   c_int),
-        'music_repeat_off': ([c_byte],   c_int),
-        'mute_on':          ([c_byte],   c_int),
-        'mute_off':         ([c_byte],   c_int),
-        'music_volume':     ([c_byte]*2, c_int),
-        'dim':              ([c_byte],   c_int),
-        'bright':           ([c_byte],   c_int),
+        'init_blynclights':    ([],         c_int),
+        'fini_blynclights':    ([c_int],    None),
+        'refresh_blynclights': ([],         c_int),
+        'device_type':         ([c_byte],   c_byte),
+        'rgb_on':              ([c_byte]*4, c_int),
+        'light_off':           ([c_byte],   c_int),
+        'bright':              ([c_byte]*2, c_int),
+        'flash':               ([c_byte]*2, c_int),
+        'flash_speed':         ([c_byte]*2, c_int),
+        'music':               ([c_byte]*2, c_int),
+        'music_repeat':        ([c_byte]*2, c_int),
+        'music_volume':        ([c_byte]*2, c_int),
+        'music_select':        ([c_byte]*2, c_int),
+
+        'mute':                ([c_byte]*2, c_int),
     }
 
     def __init__(self):
         '''
         '''
+        if _instance:
+            self.nlights = self.refresh()
+            return
+        self._instance = self
         for fname, interface in self._funcs.items():
             func = getattr(self.lib, fname)
             func.argtypes, func.restype = interface
@@ -49,6 +51,11 @@ class BlyncLightAPI:
         '''
         '''
         self.lib.fini_blynclights(self.nlights)
+
+    def refresh(self):
+        '''
+        '''
+        return self.lib.refresh_blynclights()
 
     @property
     def lib_path(self):
@@ -115,6 +122,7 @@ class BlyncLight:
         '''
         '''
         return { 'on'          : self.on,
+                 'bright'      : self.bright,
                  'color'       : self.color,
                  'flashing'    : self.flashing,
                  'flash_speed' : self.flash_speed,
@@ -123,7 +131,7 @@ class BlyncLight:
                  'music'       : self.music,
                  'play'        : self.play,
                  'repeat'      : self.repeat,
-                 'dim'         : self.dim }
+             }
 
     @property
     def color(self):
@@ -153,8 +161,8 @@ class BlyncLight:
         return self._on
 
     @on.setter
-    def on(self, newValue):
-        self._on = newValue
+    def on(self, value):
+        self._on = bool(value)
         if self._on:
             r,g,b = self.color
             self.api.rgb_on(self.device, r, g, b)
@@ -172,11 +180,8 @@ class BlyncLight:
         
     @flashing.setter
     def flashing(self, value):
-        self._flashing = value
-        if self._flashing:
-            self.api.flash_start(self.device)
-        else:
-            self.api.flash_stop(self.device)
+        self._flashing = bool(value)
+        self.api.flash(self.device, self._flashing)
 
     @property
     def flash_speed(self):
@@ -189,10 +194,6 @@ class BlyncLight:
 
     @flash_speed.setter
     def flash_speed(self, value):
-        if value < FlashSpeed.OFF:
-            value = FlashSpeed.OFF
-        if value > FlashSpeed.HIGH:
-            value = FlashSpeed.HIGH
         self._flash_speed = FlashSpeed(value)
         self.api.flash_speed(self.device, self._flash_speed.value)
         
@@ -207,11 +208,8 @@ class BlyncLight:
 
     @play.setter
     def play(self, value):
-        self._play = value
-        if self._play:
-            self.api.music_play(self.device)
-        else:
-            self.api.music_stop(self.device)
+        self._play = bool(value)
+        self.api.music(self.device, self._play)
             
     @property
     def music(self):
@@ -252,11 +250,8 @@ class BlyncLight:
 
     @repeat.setter
     def repeat(self, value):
-        self._repeat = value
-        if self._repeat:
-            self.api.music_repeat_on(self.device)
-        else:
-            self.api.music_repeat_off(self.device)
+        self._repeat = bool(value)
+        self.api.music_repeat_on(self.device, self._repeat)
 
     @property
     def mute(self):
@@ -270,24 +265,18 @@ class BlyncLight:
     @mute.setter
     def mute(self, value):
         self._mute = value
-        if self._mute:
-            self.api.mute_on(self.device)
-        else:
-            self.api.mute_off(self.device)
+        self.api.mute_on(self.device, self._mute)
 
     @property
-    def dim(self):
+    def bright(self):
         try:
-            return self._dim
+            return self._bright
         except AttributeError:
             pass
-        self._dim = False
-        return self._dim
+        self._bright = False
+        return self._bright
 
-    @dim.setter
-    def dim(self, value):
-        self._dim = value
-        if self._dim:
-            self.api.dim(self.device)
-        else:
-            self.api.bright(self.device)
+    @bright.setter
+    def bright(self, value):
+        self._bright = bool(value)
+        self.api.bright(self.device, self._bright)
