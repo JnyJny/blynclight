@@ -4,7 +4,7 @@
 '''
 
 import math
-from blynclight import BlyncLight
+from blynclight import BlyncLight_API
 from time import sleep
 from argparse import ArgumentParser
 from itertools import cycle
@@ -20,8 +20,8 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
 
     Returns a 3-tuple (r,g,b) where each member is a value between 0 and
     255.
-
     '''
+
     frequency = frequency or (.3, .3, .3)
     phase = phase or (0, 2, 4)
 
@@ -40,22 +40,25 @@ if __name__ == '__main__':
     parser.add_argument('-l','--light-id',
                         type=int,
                         default=0)
+
     parser.add_argument('-s','--speed',
                         action='count',
-                        default=0)
+                        default=1)
 
     args = parser.parse_args()
 
-    colors = [rgb for rgb in Spectrum(255)]
+    colors = [rgb for rgb in Spectrum(steps=255)]
 
-    colors.extend(list(reversed(colors)))
-
-    b = BlyncLight(args.light_id, r=0, g=0, b=0)
-
-    interval = (args.speed * 100)
-    
     try:
-        b.on = True
+        b = BlyncLight_API.available_lights()[args.light_id]
+    except IndexError:
+        print(f'light {args.light_id} unavailable')
+        exit(-1)
+
+    interval = (args.speed * .1)
+
+    b.on = True
+    try:
         for color in cycle(colors):
             b.color = color
             sleep(interval)
