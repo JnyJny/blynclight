@@ -37,16 +37,14 @@ class BlyncLight_API:
         'music_repeat':        ([c_byte]*2, c_int),
         'music_volume':        ([c_byte]*2, c_int),
         'music_select':        ([c_byte]*2, c_int),
-
         'mute':                ([c_byte]*2, c_int),
     }
 
     def __init__(self):
         '''
         '''
-
         if self._instance:
-            self.nlights = self.refresh()
+            self.refresh()
             return
 
         self._instance = self
@@ -54,17 +52,23 @@ class BlyncLight_API:
             func = getattr(self.lib, fname)
             func.argtypes, func.restype = interface
             setattr(self, fname, func)
-        self.nlights = self.lib.init_blynclights()
+        self.lib.init_blynclights()
 
     def __del__(self):
         '''
         '''
-        self.lib.fini_blynclights(self.nlights)
+        self.lib.fini_blynclights()
 
     def refresh(self):
         '''
         '''
         return self.lib.refresh_blynclights()
+
+    @property
+    def nlights(self):
+        '''
+        '''
+        return c_int.in_dll(self.lib, 'ndevices').value
 
     @property
     def lib(self):
@@ -86,13 +90,11 @@ class BlyncLight:
     '''
     '''
     
-    def __init__(self, device=0, r=0x0, g=0xff, b=0x0, on=False, api=None):
+    def __init__(self, device=0, api=None):
         '''
         '''
         self.device = device
         self.api = api
-        self.color = (r, g, b)
-        self.on = on 
 
     def __repr__(self):
         '''
@@ -113,7 +115,9 @@ class BlyncLight:
     def status(self):
         '''
         '''
-        return { 'on'          : self.on,
+        return { 'device'      : self.device,
+                 'device_type' : self.device_type,
+                 'on'          : self.on,
                  'bright'      : self.bright,
                  'color'       : self.color,
                  'flashing'    : self.flashing,
@@ -132,24 +136,6 @@ class BlyncLight:
         return DeviceType(self.api.device_type(self.device))
 
     @property
-    def color(self):
-        '''
-        '''
-        try:
-            return self._color
-        except AttributeError:
-            pass
-        self._color = (0, 0xff, 0)
-        return self._color
-
-    @color.setter
-    def color(self, colorTuple):
-        self._color = colorTuple
-        if self.on:
-            r,g,b = colorTuple
-            self.api.light_on(self.device, r, g, b)
-
-    @property
     def on(self):
         try:
             return self._on
@@ -166,6 +152,24 @@ class BlyncLight:
             self.api.light_on(self.device, r, g, b)
         else:
             self.api.light_off(self.device)
+
+    @property
+    def color(self):
+        '''
+        '''
+        try:
+            return self._color
+        except AttributeError:
+            pass
+        self._color = (0, 0xff, 0)
+        return self._color
+
+    @color.setter
+    def color(self, colorTuple):
+        self._color = colorTuple
+        if self.on:
+            r,g,b = colorTuple
+            self.api.light_on(self.device, r, g, b)
 
     @property
     def flashing(self):
@@ -271,7 +275,7 @@ class BlyncLight:
             return self._bright
         except AttributeError:
             pass
-        self._bright = False
+        self._bright = True
         return self._bright
 
     @bright.setter
