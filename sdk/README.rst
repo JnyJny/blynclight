@@ -15,10 +15,9 @@ Returns
    Device index numbers range from 0 to n-1.
 
 :Interface:
-   void fini_blynclights(int ndevices);
+   void fini_blynclights(void);
 Arguments
-   ndevices: number of devices returned from
-             init_blynclights or refresh_blynclights
+   void
 Returns
    void
 
