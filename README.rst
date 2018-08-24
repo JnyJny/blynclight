@@ -15,7 +15,7 @@ Install
 
 .. code:: bash
 
-	  $ pip install blycnlight
+	  $ pip install blynclight
 
 2. Clone the repo
 
@@ -65,6 +65,7 @@ code and the right word length as the target python).
 
 
 1. `Register`_ with Embrava and receive SDK URLs for your operating system.
+   
 2. Clone the repo
 
 .. code:: bash
