@@ -11,3 +11,5 @@ blynclight_api/*.so
 blynclight_api/embrava-sdk/*
 blynclight_api/EmbravaSdkForLinux
 src/blynclight/.boneyard/*
+.pytest_cache
+.coverage
