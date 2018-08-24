@@ -7,8 +7,8 @@
 *.egg-info
 *.dms
 .eggs
-sdk/__MACOSX
-sdk/*.o
-sdk/embrava-sdk/*
-sdk/EmbravaSdkForLinux
+blynclight_api/__MACOSX
+blynclight_api/*.o
+blynclight_api/embrava-sdk/*
+blynclight_api/EmbravaSdkForLinux
 src/blynclight/.boneyard/*
