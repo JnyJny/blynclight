@@ -3,8 +3,8 @@
 #include "blynclight_api.h"
 #include <time.h>
 
-int ndevices = 0;
-time_t last_update = 0;
+static int    ndevices = 0;
+static time_t last_update = 0;
 
 int init_blynclights(void) 
 {
@@ -19,12 +19,23 @@ void fini_blynclights(void)
   last_update = 0;
 }
 
-int refresh_blynclights(void)
+int sync_blynclights(int refresh)
 {
-  fini_blynclights();
-  init_blynclights();
+  time_t now;
+
+  if (!refresh)
+    return ndevices;
+
+  now = time(NULL);
+  
+  if ((now-last_update) > refresh) {
+    fini_blynclights();
+    init_blynclights();
+  }
+  
   return ndevices;
 }
+
 
 unsigned int unique_device_id(byte index)
 {
