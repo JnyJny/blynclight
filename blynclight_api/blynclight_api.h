@@ -3,6 +3,8 @@
 #ifndef BLYNCLIGHT_API_H
 #define BLYNCLIGHT_API_H
 
+#define INVALID_DEVICE_TYPE 0
+
 #ifdef __linux
 #include "constants.h"
 #include "hidapi.h"
@@ -16,6 +18,7 @@ struct DeviceInfo
 #define RETVAL(V) V
 #define TurnOffLight ResetLight
 #define ReleaseDevices(X) CloseDevices(X)
+#define UNIQUE_ID(NDX,UID) UID = GetDeviceUniqueId(NDX) 
 #define DEVINFO_ARRAY aosDeviceInfo
 #endif	/* __linux */
 
@@ -27,13 +30,15 @@ typedef unsigned char byte;
 #define RETVAL(V) ((V)==0)?1:0
 #define ReleaseDevices(X) ReleaseDevices()
 #define InitBlyncDevices(IPTR, ARRAY) FindDevices(IPTR)
-
+#define UNIQUE_ID(NDX,UID) GetDeviceUniqueId(NDX,&(UID)) 
 #define DEVINFO_ARRAY asDeviceInfo
 #endif	/* __APPLE__ */
 
 int  init_blynclights(void);
 void fini_blynclights(void);
 int  refresh_blynclights(void);
+
+unsigned int unique_device_id(byte index);
 
 byte device_type(byte index);
 
