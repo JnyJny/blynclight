@@ -1,7 +1,7 @@
 '''Embrava Blynclight Support
 '''
 
-from ctypes import cdll, c_byte, c_int
+from ctypes import cdll, c_byte, c_int, c_uint
 from pathlib import Path
 from platform import system
 from .constants import FlashSpeed, DeviceType
@@ -25,8 +25,9 @@ class BlyncLight_API:
     
     _funcs = {
         'init_blynclights':    ([],         c_int),
-        'fini_blynclights':    ([c_int],    None),
+        'fini_blynclights':    ([],          None),
         'refresh_blynclights': ([],         c_int),
+        'unique_device_id':    ([c_byte],   c_uint),
         'device_type':         ([c_byte],   c_byte),
         'light_on':            ([c_byte]*4, c_int),
         'light_off':           ([c_byte],   c_int),
@@ -43,6 +44,7 @@ class BlyncLight_API:
     def __init__(self):
         '''
         '''
+        # XXX BlyncLight_API is a singleton
         if self._instance:
             self.refresh()
             return
@@ -66,7 +68,7 @@ class BlyncLight_API:
 
     @property
     def nlights(self):
-        '''
+        '''Number of lights last detected.
         '''
         return c_int.in_dll(self.lib, 'ndevices').value
 
@@ -81,7 +83,7 @@ class BlyncLight_API:
         path = Path(__file__).absolute().parent 
         path = path / 'libs'
         path = path / system()
-        path = path / 'libblynclightcontrol.so'
+        path = path / 'libblynclight_api.so'
         self._lib = cdll.LoadLibrary(path)
         return self._lib
 
@@ -99,12 +101,7 @@ class BlyncLight:
     def __repr__(self):
         '''
         '''
-        return ''.join([f'{self.__class__.__name__}(',
-                        f'device={self.device},',
-                        f'r={self.color[0]}, ',
-                        f'g={self.color[1]}, ',
-                        f'b={self.color[2]}, ',
-                        f'on={self.on})'])
+        return f'{self.__class__.__name__}(device={self.device}'
 
     def __str__(self):
         '''
@@ -117,10 +114,11 @@ class BlyncLight:
         '''
         return { 'device'      : self.device,
                  'device_type' : self.device_type,
+                 'unique_id'   : self.unique_id,
                  'on'          : self.on,
                  'bright'      : self.bright,
                  'color'       : self.color,
-                 'flashing'    : self.flashing,
+                 'flash'       : self.flash,
                  'flash_speed' : self.flash_speed,
                  'mute'        : self.mute,
                  'volume'      : self.volume,
@@ -134,6 +132,16 @@ class BlyncLight:
         '''
         '''
         return DeviceType(self.api.device_type(self.device))
+
+    @property
+    def unique_id(self):
+        try:
+            return self._unique_id
+        except AttributeError:
+            pass
+        self._unique_id = self.api.unique_device_id(self.device);
+        return self._unique_id
+    
 
     @property
     def on(self):
@@ -172,18 +180,18 @@ class BlyncLight:
             self.api.light_on(self.device, r, g, b)
 
     @property
-    def flashing(self):
+    def flash(self):
         try:
-            return self._flashing
+            return self._flash
         except AttributeError:
             pass
-        self._flashing = False
-        return self._flashing
+        self._flash = False
+        return self._flash
         
-    @flashing.setter
-    def flashing(self, value):
-        self._flashing = bool(value)
-        self.api.flash(self.device, self._flashing)
+    @flash.setter
+    def flash(self, value):
+        self._flash = bool(value)
+        self.api.flash(self.device, self._flash)
 
     @property
     def flash_speed(self):
