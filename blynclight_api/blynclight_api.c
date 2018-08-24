@@ -1,31 +1,42 @@
 // blynclight_api.c
 
 #include "blynclight_api.h"
+#include <time.h>
 
 int ndevices = 0;
+time_t last_update = 0;
 
 int init_blynclights(void) 
 {
   InitBlyncDevices(&ndevices, DEVINFO_ARRAY);
+  last_update = time(NULL);
   return ndevices;
 }
 
 void fini_blynclights(void)
 {
   ReleaseDevices(ndevices);
+  last_update = 0;
 }
 
 int refresh_blynclights(void)
 {
-  ReleaseDevices(ndevices);
-  InitBlyncDevices(&ndevices, DEVINFO_ARRAY);
+  fini_blynclights();
+  init_blynclights();
   return ndevices;
 }
 
-byte device_type(byte index) {
+unsigned int unique_device_id(byte index)
+{
+  unsigned int uid;
+  UNIQUE_ID(index, uid);
+  return uid;
+}
 
+byte device_type(byte index)
+{
   if ((index > MAXIMUM_DEVICES) || (index<0))
-    return 0;
+    return INVALID_DEVICE_TYPE;
   return DEVINFO_ARRAY[index].byDeviceType;
 }
 
