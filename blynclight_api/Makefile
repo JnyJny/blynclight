@@ -17,7 +17,7 @@ IMPLEMENTATION := $(shell uname)
 
 INSTALL_PATH := ../src/blynclight/libs/$(IMPLEMENTATION)
 
-TARGET= libblynclightcontrol.so
+TARGET= libblynclight_api.so
 
 SRC= blynclight_api.c
 OBJ= $(SRC:.c=.o)
