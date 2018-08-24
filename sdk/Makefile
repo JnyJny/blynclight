@@ -65,4 +65,4 @@ clean:
 	rm -rf *.o $(TARGET)
 
 clobber: clean
-	rm -rf $(Darwin_SDK) $(Linux_SDK)
+	rm -rf $(Darwin_SDK) $(Linux_SDK) __MACOSX
