@@ -37,7 +37,7 @@ TL;DR
 
 .. code:: bash
 
-          $ cd blynclight/sdk && make URL=PLATFORM_URL install
+          $ cd blynclight/blynclight_api && make URL=PLATFORM_URL install
 
 	  
 4. Install the package
