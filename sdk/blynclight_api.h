@@ -17,7 +17,7 @@ struct DeviceInfo
 #define TurnOffLight ResetLight
 #define ReleaseDevices(X) CloseDevices(X)
 #define DEVINFO_ARRAY aosDeviceInfo
-#endif
+#endif	/* __linux */
 
 #ifdef __APPLE__
 typedef unsigned char Byte;
@@ -26,9 +26,10 @@ typedef unsigned char byte;
 #include "blynclightcontrol.h"
 #define RETVAL(V) ((V)==0)?1:0
 #define ReleaseDevices(X) ReleaseDevices()
-#define InitBlycDevices(IPTR, ARRAY) FindDevices(IPTR)
+#define InitBlyncDevices(IPTR, ARRAY) FindDevices(IPTR)
+
 #define DEVINFO_ARRAY asDeviceInfo
-#endif
+#endif	/* __APPLE__ */
 
 int  init_blynclights(void);
 void fini_blynclights(void);
