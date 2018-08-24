@@ -22,11 +22,21 @@ Returns
    void
 
 :Interface:
-   int  refresh_blynclights(void);
+   int  sync_blynclights(int refresh);
 Arguments
-   void
+   refresh:   0, do not scan
+            > 0, scans for devices if refresh seconds have
+	         elapsed since last scan.
 Returns
    Returns the number of Blync devices found.
+
+:Interface:
+   unsigned int unique_device_id(byte index)
+Arguments:
+   index: blync device index
+Returns:
+   Returns a zero if the device does not have a unique identifier,
+   otherwise returns a unsigned integer.
 
 :Interface:
    byte device_type(byte index);
