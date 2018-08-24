@@ -9,6 +9,7 @@ from time import sleep
 from math import sin
 from itertools import cycle
 
+
 def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
     '''generator function that returns 'steps' rgb tuples.
 
@@ -18,8 +19,7 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
        center: optional integer, default=128
         width: optional integer, default=127
 
-    Returns a 3-tuple (r,g,b) where each member is a value between 0 and
-    255.
+    Returns (r, g, b) where each member is a value between 0 and 255.
 
     '''
     frequency = frequency or (.3, .3, .3)
@@ -29,29 +29,28 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
         r = int((sin(frequency[0] * i + phase[0]) * width) + center)
         g = int((sin(frequency[1] * i + phase[1]) * width) + center)
         b = int((sin(frequency[2] * i + phase[2]) * width) + center)
-        yield (r,g,b)
+        yield (r, g, b)
+
 
 if __name__ == '__main__':
     '''
     '''
 
     parser = ArgumentParser()
-    
-    parser.add_argument('-l','--light-id',
+
+    parser.add_argument('-l', '--light-id',
                         type=int,
                         default=0)
-    
-    parser.add_argument('-s','--speed',
+
+    parser.add_argument('-s', '--speed',
                         action='count',
-                        default=0)
+                        default=1)
 
     args = parser.parse_args()
 
     colors = [rgb for rgb in Spectrum(255)]
 
-    colors.extend(list(reversed(colors)))
-
-    interval = (args.speed * 100)
+    interval = (args.speed * 0.1)
 
     proxy = BlyncLightProxy()
 
@@ -60,7 +59,7 @@ if __name__ == '__main__':
     except IndexError:
         print(f'Light {args.light_id} not available.')
         exit(-1)
-    
+
     try:
         proxy.on(args.light_id)
         for color in cycle(colors):
@@ -69,7 +68,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     proxy.off(args.light_id)
-
-    
-            
-        

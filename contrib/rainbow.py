@@ -9,6 +9,7 @@ from time import sleep
 from argparse import ArgumentParser
 from itertools import cycle
 
+
 def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
     '''generator function that returns 'steps' rgb tuples.
 
@@ -18,8 +19,7 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
        center: optional integer, default=128
         width: optional integer, default=127
 
-    Returns a 3-tuple (r,g,b) where each member is a value between 0 and
-    255.
+    Returns (r, g, b) where each member is a value between 0 and 255.
     '''
 
     frequency = frequency or (.3, .3, .3)
@@ -29,19 +29,20 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
         r = int((math.sin(frequency[0] * i + phase[0]) * width) + center)
         g = int((math.sin(frequency[1] * i + phase[1]) * width) + center)
         b = int((math.sin(frequency[2] * i + phase[2]) * width) + center)
-        yield (r,g,b)
+        yield (r, g, b)
+
 
 if __name__ == '__main__':
     '''
     '''
 
     parser = ArgumentParser()
-    
-    parser.add_argument('-l','--light-id',
+
+    parser.add_argument('-l', '--light-id',
                         type=int,
                         default=0)
 
-    parser.add_argument('-s','--speed',
+    parser.add_argument('-s', '--speed',
                         action='count',
                         default=1)
 
@@ -65,7 +66,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     b.on = False
-
-    
-            
-        

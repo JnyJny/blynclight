@@ -36,7 +36,3 @@ __all__ = [
     'FlashSpeed', 'DeviceType', 'MusicSelections', 'MusicVolume',
     'BlyncLightProxy',
 ]
-
-
-            
-    
