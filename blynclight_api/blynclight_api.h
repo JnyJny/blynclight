@@ -36,7 +36,7 @@ typedef unsigned char byte;
 
 int  init_blynclights(void);
 void fini_blynclights(void);
-int  refresh_blynclights(void);
+int  sync_blynclights(int refresh);
 
 unsigned int unique_device_id(byte index);
 

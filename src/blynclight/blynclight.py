@@ -25,8 +25,8 @@ class BlyncLight_API:
     
     _funcs = {
         'init_blynclights':    ([],         c_int),
-        'fini_blynclights':    ([],          None),
-        'refresh_blynclights': ([],         c_int),
+        'fini_blynclights':    ([],         None),
+        'sync_blynclights':    ([c_int],    c_int),
         'unique_device_id':    ([c_byte],   c_uint),
         'device_type':         ([c_byte],   c_byte),
         'light_on':            ([c_byte]*4, c_int),
@@ -64,13 +64,13 @@ class BlyncLight_API:
     def refresh(self):
         '''
         '''
-        return self.lib.refresh_blynclights()
+        return self.lib.sync_blynclights(1)
 
     @property
     def nlights(self):
         '''Number of lights last detected.
         '''
-        return c_int.in_dll(self.lib, 'ndevices').value
+        return self.lib.sync_blynclights(30);
 
     @property
     def lib(self):
@@ -95,13 +95,15 @@ class BlyncLight:
     def __init__(self, device=0, api=None):
         '''
         '''
+        if not isinstance(api, BlyncLight_API):
+            raise ValueError(f'api is not a BlyncLight_API')
         self.device = device
-        self.api = api
+        self.api    = api
 
     def __repr__(self):
         '''
         '''
-        return f'{self.__class__.__name__}(device={self.device}'
+        return f'{self.__class__.__name__}(device={self.device})'
 
     def __str__(self):
         '''
