@@ -7,6 +7,7 @@
 .eggs
 blynclight_api/__MACOSX
 blynclight_api/*.o
+blynclight_api/*.so
 blynclight_api/embrava-sdk/*
 blynclight_api/EmbravaSdkForLinux
 src/blynclight/.boneyard/*
