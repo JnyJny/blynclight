@@ -14,6 +14,8 @@ API
    **Returns**
      Returns the number of Blync devices found.
      Device index numbers range from 0 to n-1.
+     
+   **Notes**
 
 :Interface:
    void fini_blynclights(void);
@@ -22,16 +24,19 @@ API
       void
    **Returns**
       void
+
+   **Notes**      
    
 :Interface:
    int  sync_blynclights(int refresh);
    
    **Arguments**
-      - refresh:   0, do not scan
-                 > 0, scans for devices if refresh seconds have
-   	           elapsed since last scan.
+      - refresh:   0 == do not scan, >1 refresh seconds
+
    **Returns**
       Returns the number of Blync devices found.
+
+   **Notes**      
 
 :Interface:
    unsigned int unique_device_id(byte index)
@@ -42,6 +47,8 @@ API
       Returns a zero if the device does not have a unique identifier,
       otherwise returns a unsigned integer.
 
+   **Notes**      
+
 :Interface:
    byte device_type(byte index);
    
@@ -49,6 +56,8 @@ API
       - index: blync device index
    **Returns**
       Returns (SUCCESS)?1:0
+
+   **Notes**      
 
 :Interface:
    int  light_on(byte index, byte red, byte green, byte blue);
@@ -61,6 +70,8 @@ API
    **Returns**
       Returns (SUCCESS)?1:0
 
+   **Notes**      
+
 :Interface:
    int  light_off(byte index);
    
@@ -68,6 +79,8 @@ API
       - index : blync device index
    **Returns**
       Returns (SUCCESS)?1:0
+
+   **Notes**      
 
 :Interface:
    int  bright(byte index, byte mode);
@@ -78,6 +91,8 @@ API
    **Returns**
       Returns (SUCCESS)?1:0
 
+   **Notes**      
+
 :Interface:
    int  flash(byte index, byte mode);
    
@@ -86,7 +101,8 @@ API
       - mode: 1 on, 0 off
    **Returns**
       Returns (SUCCESS)?1:0
-
+   **Notes**
+   
 :Interface:
    int  flash_speed(byte index, byte speed);
    
@@ -95,7 +111,8 @@ API
       - speed: 0=Off, 1=Low, 2=Medium, 3=High
    **Returns**
       Returns (SUCCESS)?1:0
-
+   **Notes**
+   
 :Interface:
    int  music(byte index, byte mode);
    
@@ -104,7 +121,8 @@ API
       - mode: 1 play, 0 stop
    **Returns**
       Returns (SUCCESS)?1:0
-
+   **Notes**
+   
 :Interface:
    int  music_repeat(byte index, byte mode);
    
@@ -113,7 +131,8 @@ API
       - mode: 1 on, 0 off
    **Returns**
       Returns (SUCCESS)?1:0
-
+   **Notes**
+   
 :Interface:
    int  music_volume(byte index, byte volume);
    
@@ -122,7 +141,8 @@ API
       - volume:  
    **Returns**
       Returns (SUCCESS)?1:0
-
+   **Notes**
+   
 :Interface:
    int  music_select(byte index, byte music);
    
@@ -131,7 +151,8 @@ API
       - music: 
    **Returns**
       Returns (SUCCESS)?1:0
-
+   **Notes**
+   
 :Interface:
    int  mute(byte index, byte mode);
    
@@ -140,5 +161,5 @@ API
       - mode: 
    **Returns**
       Returns (SUCCESS)?1:0
-
+   **Notes**
 
