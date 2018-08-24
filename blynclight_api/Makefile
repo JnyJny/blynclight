@@ -13,7 +13,7 @@
 
 IMPLEMENTATIONS= Linux Darwin
 
-IMPLEMENTATION := $(shell uname)
+SYSTEM := $(shell uname)
 
 INSTALL_PATH := ../src/blynclight/libs/$(IMPLEMENTATION)
 
@@ -25,44 +25,46 @@ OBJ= $(SRC:.c=.o)
 Darwin_SDK=  embrava-sdk
 Linux_SDK=   EmbravaSdkForLinux
 
-SDKS= $(Darwin_SDK) $(Linux_SDK)
+ifeq ($(SYSTEM),Darwin)
+  SDK_ROOT= $(Darwin_SDK)
+  API_DIR= SDK_static_lib
+  API_ARCHIVE= $(SDK_ROOT)/$(API_DIR)/libblynclightcontrol.a
+  API_OBJS=  blynclightcontrol.o
+  LIBS=
+endif
 
-.PHONY: install curl
+ifeq ($(SYSTEM),Linux)
+  SDK_ROOT= $(Linux_SDK)
+  API_DIR= EmbravaApi
+  API_ARCHIVE= $(SDK_ROOT)/$(API_DIR)/libembravaapi.a
+  API_OBJS= embravaapi.o hid-libusb.o
+  LIBS += -lhidapi-hidraw -lusb-1.0
+endif
 
-all: $(IMPLEMENTATION)
+.PHONY: install
 
-Darwin: SDK_ROOT= $(Darwin_SDK)
-Darwin: API_DIR= SDK_static_lib
-Darwin: API_ARCHIVE= $(SDK_ROOT)/$(API_DIR)/libblynclightcontrol.a
-Darwin: API_OBJS=  blynclightcontrol.o
-Darwin: LIBS=
+all: install
 
-Linux: SDK_ROOT= $(Linux_SDK)
-Linux: API_DIR= EmbravaApi
-Linux: API_ARCHIVE= $(SDK_ROOT)/$(API_DIR)/libembravaapi.a
-Linux: API_OBJS= embravaapi.o hid-libusb.o
-Linux: LIBS= -lhidapi-hidraw -lusb-1.0
+$(TARGET): $(OBJ) $(API_OBJS)
+	$(CC) -o $@ $(API_OBJS) $(OBJ) -fPIC -shared $(LIBS)
 
-$(IMPLEMENTATIONS): curl install
+$(OBJ): $(SDK_ROOT) $(SRC) $(SRC:.c=.h)
+	$(CC) -c $(SRC) -I$(SDK_ROOT)/$(API_DIR) -std=gnu99 -fPIC
 
-install: $(INSTALL_PATH) $(TARGET)
-	cp $(TARGET) $(INSTALL_PATH)/$(TARGET)
+$(SDK_ROOT):
+	curl -L $(URL) | jar x
+
+$(API_OBJS): $(SDK_ROOT)
+	ar x $(API_ARCHIVE) $@
 
 $(INSTALL_PATH):
 	mkdir -p $@
 
-$(TARGET): $(OBJ) curl
-	$(CC) -o $@ $(API_OBJS) $(OBJ) -fPIC -shared $(LIBS)
-
-$(OBJ): $(SRC) $(SRC:.c=.h)
-	$(CC) -c $(SRC) -I$(SDK_ROOT)/$(API_DIR) -std=gnu99 -fPIC
-
-curl:
-	curl -L $(URL) | jar x
-	ar x $(API_ARCHIVE) $(API_OBJS)
+install: $(INSTALL_PATH) $(TARGET)
+	cp $(TARGET) $(INSTALL_PATH)/$(TARGET)
 
 clean:
-	rm -rf *.o $(TARGET)
+	@rm -rf *.o __MACOSX
 
 clobber: clean
-	rm -rf $(Darwin_SDK) $(Linux_SDK) __MACOSX
+	@rm -rf $(Darwin_SDK) $(Linux_SDK) $(TARGET)
