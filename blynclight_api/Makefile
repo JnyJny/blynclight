@@ -61,7 +61,7 @@ install: $(INSTALL_PATH) $(TARGET)
 	cp $(TARGET) $(INSTALL_PATH)/$(TARGET)
 
 clean:
-	@rm -rf *.o __MACOSX
+	@rm -rf *.o __MACOSX $(TARGET)
 
 clobber: clean
-	@rm -rf $(Darwin_SDK) $(Linux_SDK) $(TARGET)
+	@rm -rf $(SDK_ROOT) 
