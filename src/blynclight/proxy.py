@@ -4,9 +4,11 @@
 import requests
 import json
 
+
 class Proxy(object):
     '''
     '''
+
     def __init__(self, blynclight_url=None):
         '''
         '''
@@ -16,7 +18,7 @@ class Proxy(object):
         '''
         '''
         args = [self.baseurl]
-        
+
         if light_id or light_id == 0:
             args.append(light_id)
 
@@ -24,8 +26,8 @@ class Proxy(object):
 
         if value:
             args.append(value)
-            
-        r = requests.get('/'.join(map(str,args)))
+
+        r = requests.get('/'.join(map(str, args)))
 
         return json.loads(r.content.decode('utf-8'))
 
@@ -39,7 +41,7 @@ class Proxy(object):
     def status(self, light_id=None):
         '''
         '''
-        return self._call('status',light_id)
+        return self._call('status', light_id)
 
     def on(self, light_id):
         return self._call('on', light_id)
@@ -52,12 +54,12 @@ class Proxy(object):
         '''
         if isinstance(value, tuple):
             # convert tuple to string
-            value = '0x'+''.join(['{02x}'.format(v) for v in value])
-            
+            value = '0x' + ''.join(['{02x}'.format(v) for v in value])
+
         if isinstance(value, int):
             # convert int to hex string
             value = hex(value)
-        
+
         return self._call('color', light_id, value)
 
     def red(self, light_id, value):
@@ -73,4 +75,4 @@ class Proxy(object):
     def blue(self, light_id, value):
         '''
         '''
-        return self._call('blue', light_id, value)    
+        return self._call('blue', light_id, value)

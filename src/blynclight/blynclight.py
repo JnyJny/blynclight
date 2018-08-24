@@ -6,6 +6,7 @@ from pathlib import Path
 from platform import system
 from .constants import FlashSpeed, DeviceType
 
+
 class BlyncLight_API:
 
     _instance = None
@@ -22,23 +23,23 @@ class BlyncLight_API:
         '''
         '''
         return cls.available_lights()[0]
-    
+
     _funcs = {
-        'init_blynclights':    ([],         c_int),
-        'fini_blynclights':    ([],         None),
-        'sync_blynclights':    ([c_int],    c_int),
-        'unique_device_id':    ([c_byte],   c_uint),
-        'device_type':         ([c_byte],   c_byte),
-        'light_on':            ([c_byte]*4, c_int),
-        'light_off':           ([c_byte],   c_int),
-        'bright':              ([c_byte]*2, c_int),
-        'flash':               ([c_byte]*2, c_int),
-        'flash_speed':         ([c_byte]*2, c_int),
-        'music':               ([c_byte]*2, c_int),
-        'music_repeat':        ([c_byte]*2, c_int),
-        'music_volume':        ([c_byte]*2, c_int),
-        'music_select':        ([c_byte]*2, c_int),
-        'mute':                ([c_byte]*2, c_int),
+        'init_blynclights': ([], c_int),
+        'fini_blynclights': ([], None),
+        'sync_blynclights': ([c_int], c_int),
+        'unique_device_id': ([c_byte], c_uint),
+        'device_type': ([c_byte], c_byte),
+        'light_on': ([c_byte] * 4, c_int),
+        'light_off': ([c_byte], c_int),
+        'bright': ([c_byte] * 2, c_int),
+        'flash': ([c_byte] * 2, c_int),
+        'flash_speed': ([c_byte] * 2, c_int),
+        'music': ([c_byte] * 2, c_int),
+        'music_repeat': ([c_byte] * 2, c_int),
+        'music_volume': ([c_byte] * 2, c_int),
+        'music_select': ([c_byte] * 2, c_int),
+        'mute': ([c_byte] * 2, c_int),
     }
 
     def __init__(self):
@@ -70,7 +71,7 @@ class BlyncLight_API:
     def nlights(self):
         '''Number of lights last detected.
         '''
-        return self.lib.sync_blynclights(30);
+        return self.lib.sync_blynclights(30)
 
     @property
     def lib(self):
@@ -80,25 +81,25 @@ class BlyncLight_API:
             return self._lib
         except AttributeError:
             pass
-        path = Path(__file__).absolute().parent 
+        path = Path(__file__).absolute().parent
         path = path / 'libs'
         path = path / system()
         path = path / 'libblynclight_api.so'
         self._lib = cdll.LoadLibrary(path)
         return self._lib
 
-    
+
 class BlyncLight:
     '''
     '''
-    
+
     def __init__(self, device=0, api=None):
         '''
         '''
         if not isinstance(api, BlyncLight_API):
             raise ValueError(f'api is not a BlyncLight_API')
         self.device = device
-        self.api    = api
+        self.api = api
 
     def __repr__(self):
         '''
@@ -108,26 +109,26 @@ class BlyncLight:
     def __str__(self):
         '''
         '''
-        return '\n'.join([f'{k:12s}: {v}'for k,v in self.status.items()])
+        return '\n'.join([f'{k:12s}: {v}'for k, v in self.status.items()])
 
     @property
     def status(self):
         '''
         '''
-        return { 'device'      : self.device,
-                 'device_type' : self.device_type,
-                 'unique_id'   : self.unique_id,
-                 'on'          : self.on,
-                 'bright'      : self.bright,
-                 'color'       : self.color,
-                 'flash'       : self.flash,
-                 'flash_speed' : self.flash_speed,
-                 'mute'        : self.mute,
-                 'volume'      : self.volume,
-                 'music'       : self.music,
-                 'play'        : self.play,
-                 'repeat'      : self.repeat,
-             }
+        return {'device': self.device,
+                'device_type': self.device_type,
+                'unique_id': self.unique_id,
+                'on': self.on,
+                'bright': self.bright,
+                'color': self.color,
+                'flash': self.flash,
+                'flash_speed': self.flash_speed,
+                'mute': self.mute,
+                'volume': self.volume,
+                'music': self.music,
+                'play': self.play,
+                'repeat': self.repeat,
+                }
 
     @property
     def device_type(self):
@@ -141,9 +142,8 @@ class BlyncLight:
             return self._unique_id
         except AttributeError:
             pass
-        self._unique_id = self.api.unique_device_id(self.device);
+        self._unique_id = self.api.unique_device_id(self.device)
         return self._unique_id
-    
 
     @property
     def on(self):
@@ -158,7 +158,7 @@ class BlyncLight:
     def on(self, value):
         self._on = bool(value)
         if self._on:
-            r,g,b = self.color
+            r, g, b = self.color
             self.api.light_on(self.device, r, g, b)
         else:
             self.api.light_off(self.device)
@@ -178,7 +178,7 @@ class BlyncLight:
     def color(self, colorTuple):
         self._color = colorTuple
         if self.on:
-            r,g,b = colorTuple
+            r, g, b = colorTuple
             self.api.light_on(self.device, r, g, b)
 
     @property
@@ -189,7 +189,7 @@ class BlyncLight:
             pass
         self._flash = False
         return self._flash
-        
+
     @flash.setter
     def flash(self, value):
         self._flash = bool(value)
@@ -208,7 +208,7 @@ class BlyncLight:
     def flash_speed(self, value):
         self._flash_speed = FlashSpeed(value)
         self.api.flash_speed(self.device, self._flash_speed.value)
-        
+
     @property
     def play(self):
         try:
@@ -222,7 +222,7 @@ class BlyncLight:
     def play(self, value):
         self._play = bool(value)
         self.api.music(self.device, self._play)
-            
+
     @property
     def music(self):
         try:
