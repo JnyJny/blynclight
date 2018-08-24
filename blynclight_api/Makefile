@@ -1,4 +1,3 @@
-
 # Fill out the form at:
 #
 # https://www.embrava.com/pages/embrava-software-sdk
@@ -9,34 +8,32 @@
 # $ make URL=https://url/for/the/sdk
 #
 # The makefile takes apart the static library archive and constructs a
-# shared library which can then be used by python.
-
-IMPLEMENTATIONS= Linux Darwin
+# shared library with some of the Embrava API warts smoothed over.
+#
 
 SYSTEM := $(shell uname)
 
-INSTALL_PATH := ../src/blynclight/libs/$(IMPLEMENTATION)
+INSTALL_PATH := ../src/blynclight/libs/$(SYSTEM)
 
 TARGET= libblynclight_api.so
 
 SRC= blynclight_api.c
 OBJ= $(SRC:.c=.o)
+HDR= $(SRC:.c=.h)
 
-Darwin_SDK=  embrava-sdk
-Linux_SDK=   EmbravaSdkForLinux
 
 ifeq ($(SYSTEM),Darwin)
-  SDK_ROOT= $(Darwin_SDK)
-  API_DIR= SDK_static_lib
-  API_ARCHIVE= $(SDK_ROOT)/$(API_DIR)/libblynclightcontrol.a
+  SDK_ROOT= embrava-sdk
+  API_DIR= $(SDK_ROOT)/SDK_static_lib
+  API_ARCHIVE= $(API_DIR)/libblynclightcontrol.a
   API_OBJS=  blynclightcontrol.o
-  LIBS=
+  LIBS= 
 endif
 
 ifeq ($(SYSTEM),Linux)
-  SDK_ROOT= $(Linux_SDK)
-  API_DIR= EmbravaApi
-  API_ARCHIVE= $(SDK_ROOT)/$(API_DIR)/libembravaapi.a
+  SDK_ROOT= EmbravaSdkForLinux
+  API_DIR= $(SDK_ROOT)/EmbravaApi
+  API_ARCHIVE= $(API_DIR)/libembravaapi.a
   API_OBJS= embravaapi.o hid-libusb.o
   LIBS += -lhidapi-hidraw -lusb-1.0
 endif
@@ -48,8 +45,8 @@ all: install
 $(TARGET): $(OBJ) $(API_OBJS)
 	$(CC) -o $@ $(API_OBJS) $(OBJ) -fPIC -shared $(LIBS)
 
-$(OBJ): $(SDK_ROOT) $(SRC) $(SRC:.c=.h)
-	$(CC) -c $(SRC) -I$(SDK_ROOT)/$(API_DIR) -std=gnu99 -fPIC
+$(OBJ): $(SDK_ROOT) $(SRC) $(HDR)
+	$(CC) -c $(SRC) -I$(API_DIR) -std=gnu99 -fPIC
 
 $(SDK_ROOT):
 	curl -L $(URL) | jar x
