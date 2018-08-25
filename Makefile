@@ -1,11 +1,13 @@
 # data-bench-python Makefile
 # 
-VERSION=0.1.0
+VERSION=0.1.1
 PYTHON= python3
 SETUP_PY= setup.py
 TWINE= twine
 PYPI= testpypi
 TEMP= build dist
+
+.PHONY: VERSION
 
 all:
 	@echo "VERSION=$(VERSION)"
