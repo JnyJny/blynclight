@@ -52,7 +52,7 @@ More examples can be found in the contrib directory of the git repo.
 
 Build
 -----
-Embrava distributes a Software Development Kit (sdk) for Windows,
+Embrava distributes a Software Development Kit (SDK) for Windows,
 MacOS and Linux that developers must first `request`_ access to. The
 MacOS and Linux SDKs provide access to BlyncLight devices via a static
 library archive.  Developers then link their applications against the
@@ -92,8 +92,6 @@ Uninstall with pip:
 .. code:: bash
 
 	  $ pip uninstall blynclight
-
-
 
 
 .. |pypi| image:: https://img.shields.io/pypi/v/blynclight.svg?style=flat-square&label=version
