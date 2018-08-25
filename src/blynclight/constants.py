@@ -27,9 +27,24 @@ class FlashSpeed(Enum):
     HIGH = 3
 
 
+class MusicOp(Enum):
+    STOP = 0
+    START = 1
+
+
 class MusicSelections(Enum):
     pass
 
 
 class MusicVolume(Enum):
-    pass
+    Vol000Percent = 0
+    Vol010Percent = 1
+    Vol020Percent = 2
+    Vol030Percent = 3
+    Vol040Percent = 4
+    Vol050Percent = 5
+    Vol060Percent = 6
+    Vol070Percent = 7
+    Vol080Percent = 8
+    Vol090Percent = 9
+    Vol100Percent = 10
