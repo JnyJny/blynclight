@@ -302,23 +302,23 @@ class BlyncLight:
 
 
 class BlyncLightStatus(ctypes.Structure):
-    _fields_ = [('bigpad', ctypes.c_uint64, 56),
+    _fields_ = [('big0', ctypes.c_uint64, 56),
                 ('report', ctypes.c_uint64, 8),
                 ('red', ctypes.c_uint64, 8),
                 ('blue', ctypes.c_uint64, 8),
                 ('green', ctypes.c_uint64, 8),
-                ('pad0', ctypes.c_uint64, 2),
-                ('speed', ctypes.c_uint64, 3),
-                ('flash', ctypes.c_uint64, 1),
-                ('dim', ctypes.c_uint64, 1),
                 ('off', ctypes.c_uint64, 1),
+                ('dim', ctypes.c_uint64, 1),
+                ('flash', ctypes.c_uint64, 1),
+                ('speed', ctypes.c_uint64, 3),
                 ('pad1', ctypes.c_uint64, 2),
-                ('repeat', ctypes.c_uint64, 1),
-                ('start', ctypes.c_uint64, 1),
-                ('music', ctypes.c_uint64, 4),
                 ('mute', ctypes.c_uint64, 1),
-                ('pad2', ctypes.c_uint64, 3),
+                ('music', ctypes.c_uint64, 4),                
+                ('start', ctypes.c_uint64, 1),
+                ('repeat', ctypes.c_uint64, 1),
+                ('pad2', ctypes.c_uint64, 2),
                 ('volume', ctypes.c_uint64, 4),
+                ('pad3', ctypes.c_uint64, 3),
                 ('eob', ctypes.c_uint64, 16)]
 
     def as_dict(self):
