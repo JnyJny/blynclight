@@ -1,10 +1,10 @@
 '''
 '''
 
-from enum import Enum
+import enum
 
 
-class DeviceType(Enum):
+class DeviceType(enum.Enum):
     INVALID = 0
     TENX_10 = 1
     TENX_20 = 2
@@ -20,24 +20,17 @@ class DeviceType(Enum):
     EMBEDDED_V30 = 12
 
 
-class FlashSpeed(Enum):
-    OFF = 0
-    LOW = 1
+class FlashSpeed(enum.IntEnum):
+    OFF    = 0
+    LOW    = 1
     MEDIUM = 2
-    HIGH = 3
+    HIGH   = 4
 
 
-class MusicOp(Enum):
-    STOP = 0
-    START = 1
-
-
-class MusicSelections(Enum):
+class MusicSelections(enum.Enum):
     pass
 
-
-class MusicVolume(Enum):
-    Vol000Percent = 0
+class MusicVolume(enum.IntEnum):
     Vol010Percent = 1
     Vol020Percent = 2
     Vol030Percent = 3

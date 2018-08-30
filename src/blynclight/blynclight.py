@@ -1,11 +1,17 @@
 '''Embrava Blynclight Support
 '''
 
-from ctypes import cdll, c_byte, c_int, c_uint
+import ctypes
+import enum
+import atexit
 from pathlib import Path
 from platform import system
-from .constants import FlashSpeed, DeviceType
-
+from .constants import FlashSpeed, DeviceType, MusicVolume
+from .hid import enumerate as hid_enumerate
+from .hid import write as hid_write
+from .hid import open as hid_open
+from .hid import read as hid_read
+from .hid import close as hid_close
 
 class BlyncLight_API:
 
@@ -25,21 +31,21 @@ class BlyncLight_API:
         return cls.available_lights()[0]
 
     _funcs = {
-        'init_blynclights': ([], c_int),
+        'init_blynclights': ([], ctypes.c_int),
         'fini_blynclights': ([], None),
-        'sync_blynclights': ([c_int], c_int),
-        'unique_device_id': ([c_byte], c_uint),
-        'device_type': ([c_byte], c_byte),
-        'light_on': ([c_byte] * 4, c_int),
-        'light_off': ([c_byte], c_int),
-        'bright': ([c_byte] * 2, c_int),
-        'flash': ([c_byte] * 2, c_int),
-        'flash_speed': ([c_byte] * 2, c_int),
-        'music': ([c_byte] * 2, c_int),
-        'music_repeat': ([c_byte] * 2, c_int),
-        'music_volume': ([c_byte] * 2, c_int),
-        'music_select': ([c_byte] * 2, c_int),
-        'mute': ([c_byte] * 2, c_int),
+        'sync_blynclights': ([ctypes.c_int], ctypes.c_int),
+        'unique_device_id': ([ctypes.c_byte], ctypes.c_uint),
+        'device_type': ([ctypes.c_byte], ctypes.c_byte),
+        'light_on': ([ctypes.c_byte] * 4, ctypes.c_int),
+        'light_off': ([ctypes.c_byte], ctypes.c_int),
+        'bright': ([ctypes.c_byte] * 2, ctypes.c_int),
+        'flash': ([ctypes.c_byte] * 2, ctypes.c_int),
+        'flash_speed': ([ctypes.c_byte] * 2, ctypes.c_int),
+        'music': ([ctypes.c_byte] * 2, ctypes.c_int),
+        'music_repeat': ([ctypes.c_byte] * 2, ctypes.c_int),
+        'music_volume': ([ctypes.c_byte] * 2, ctypes.c_int),
+        'music_select': ([ctypes.c_byte] * 2, ctypes.c_int),
+        'mute': ([ctypes.c_byte] * 2, ctypes.c_int),
     }
 
     def __init__(self):
@@ -85,7 +91,7 @@ class BlyncLight_API:
         path = path / 'libs'
         path = path / system()
         path = path / 'libblynclight_api.so'
-        self._lib = cdll.LoadLibrary(path)
+        self._lib = ctypes.cdll.LoadLibrary(path)
         return self._lib
 
 
@@ -292,3 +298,99 @@ class BlyncLight:
     def bright(self, value):
         self._bright = bool(value)
         self.api.bright(self.device, self._bright)
+
+
+
+class BlyncLightStatus(ctypes.Structure):
+    _fields_ = [('bigpad', ctypes.c_uint64, 56),
+                ('report', ctypes.c_uint64, 8),
+                ('red', ctypes.c_uint64, 8),
+                ('blue', ctypes.c_uint64, 8),
+                ('green', ctypes.c_uint64, 8),
+                ('pad0', ctypes.c_uint64, 2),
+                ('speed', ctypes.c_uint64, 3),
+                ('flash', ctypes.c_uint64, 1),
+                ('dim', ctypes.c_uint64, 1),
+                ('off', ctypes.c_uint64, 1),
+                ('pad1', ctypes.c_uint64, 2),
+                ('repeat', ctypes.c_uint64, 1),
+                ('start', ctypes.c_uint64, 1),
+                ('music', ctypes.c_uint64, 4),
+                ('mute', ctypes.c_uint64, 1),
+                ('pad2', ctypes.c_uint64, 3),
+                ('volume', ctypes.c_uint64, 4),
+                ('eob', ctypes.c_uint64, 16)]
+
+    def as_dict(self):
+        ret = {}
+        for name, *_ in self._fields_:
+            if 'pad' in name:
+                continue
+            v = getattr(self, name, None)
+            ret.setdefault(name, v)
+        return ret
+
+    @property
+    def value(self):
+        r = 0
+        shift = sum(b for n,t,b in self._fields_)
+        for name, ctype, bits in self._fields_:
+            shift -= bits
+            r |= getattr(self, name) << shift
+        return r
+
+class NewBlyncLight(BlyncLightStatus):
+
+    @classmethod
+    def available_lights(cls):
+        return [cls.from_dict(d) for d in hid_enumerate(vendor_id=0x2c0d)]
+
+    @classmethod
+    def first_light(cls):
+        return cls.available_lights()[0]
+
+    @classmethod
+    def from_dict(cls, device):
+        return cls(vendor_id=device['vendor_id'],
+                   product_id=device['product_id'])
+
+    def __init__(self, vendor_id, product_id, value=None):
+        self._handle = hid_open(vendor_id, product_id)
+        self.eob = 0xffff
+        self.on = 0
+
+    def __del__(self):
+        
+        hid_close(self._handle)
+
+    def __repr__(self):
+
+        return ''.join([f'{self.__class__.__name__}(',
+                        'vendor_id={vendor_id},',
+                        'product_id={product_id})'])
+
+    def __str__(self):
+        return '\n'.join(f'{k:10s}: {v:X}' for k,v in self.as_dict().items())
+
+    @property
+    def on(self):
+        return 0 if self.off else 1
+
+    @on.setter
+    def on(self, newValue):
+        self.off = 0 if newValue else 1
+
+    @property
+    def bright(self):
+        return 0 if self.dim else 1
+
+    @bright.setter
+    def bright(self, newValue):
+        self.dim = 0 if newValue else 1
+
+    def send(self):
+
+        offset = 7
+        return hid_write(self._handle,
+                         ctypes.byref(self, offset),
+                         ctypes.sizeof(self) - offset)
