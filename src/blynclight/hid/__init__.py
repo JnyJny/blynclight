@@ -34,7 +34,7 @@ DeviceInfo._fields_ = [
 class Device(ctypes.Structure):
     pass
 
-hidapi_libraries = ['hidapi'
+hidapi_libraries = ['hidapi',
                     'hidapi-hidraw',
                     'hidapi-libusb',
                     'hidapi-iohidmanager']
