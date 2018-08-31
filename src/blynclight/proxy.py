@@ -76,3 +76,14 @@ class Proxy(object):
         '''
         '''
         return self._call('blue', light_id, value)
+
+    def flash_on(self, light_id):
+        raise NotImplementedError('flash_on')
+
+    def flash_off(self, light_id):
+        raise NotImplementedError('flash_on')
+
+    def flash_speed(self, light_id, value):
+        '''
+        '''
+        raise NotImplementedError('flash_speed')
