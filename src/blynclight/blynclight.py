@@ -118,6 +118,10 @@ class BlyncLight(BlyncLightStatus):
         return '\n'.join(f'{k:10s}: {v:X}' for k,v in self.as_dict().items())
 
     @property
+    def status(self):
+        return self.as_dict()
+
+    @property
     def on(self):
         return 0 if self.off else 1
 
@@ -144,7 +148,7 @@ class BlyncLight(BlyncLightStatus):
             r = (newValue >> 16) & 0x00ff
             b = (newValue >>  8) & 0x00ff
             g = newValue & 0x00ff
-            self.red, self.blue, self.green = r,g,b
+            self.red, self.blue, self.green = r,b,g
             return
         except TypeError:
             pass
