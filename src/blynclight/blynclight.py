@@ -144,15 +144,21 @@ class BlyncLight(BlyncLightStatus):
 
     @color.setter
     def color(self, newValue):
+        prev_imm = self.immediate
+        if prev_imm:
+            self.immediate = False
         try:
-            r = (newValue >> 16) & 0x00ff
-            b = (newValue >>  8) & 0x00ff
-            g = newValue & 0x00ff
-            self.red, self.blue, self.green = r,b,g
+            self.red = (newValue >> 16) & 0x00ff
+            self.blue = (newValue >>  8) & 0x00ff
+            self.green = newValue & 0x00ff
+            self.update_device()
+            self.immediate = prev_imm
             return
         except TypeError:
             pass
         self.red, self.blue, self.green = newValue
+        self.update_device()
+        self.immediate = prev_imm
 
     def __setattr__(self, name, value):
         '''
