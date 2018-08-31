@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import hug
-from blynclight import BlyncLight_API
+from blynclight import BlyncLight
 
 
 def HexToRGB(hexValue):
@@ -37,7 +37,7 @@ class BlyncDaemon(object):
             return self._lights
         except AttributeError:
             pass
-        self._lights = BlyncLight_API.available_lights()
+        self._lights = BlyncLight.available_lights()
         return self._lights
 
     @hug.object.get('/blynclight/status')
@@ -88,7 +88,7 @@ class BlyncDaemon(object):
                         light_id: hug.types.number,
                         value: hug.types.number):
         '''Sets the flash speed of the BlyncLight identified by 'light_id'.
-        Valid speeds are: (1,low), (2, medium), (3, fast).'''
+        Valid speeds are: (1, low), (2, medium), (3, fast).'''
         self.lights[light_id].flash_speed = value
         return self.lights[light_id].status
 
@@ -97,6 +97,6 @@ class BlyncDaemon(object):
                   light_id: hug.types.number,
                   hex_rgb_value: hug.types.text):
         '''Sets the color of the BlyncLight identifed by 'light_id'.
-        Valid color specifiers are hex RGB strings with the format: 0xRRGGBB'''
+        Valid color specifiers are hex RGB strings with the format: 0xRRBBGG'''
         self.lights[light_id].color = HexToRGB(hex_rgb_value)
         return self.lights[light_id].status

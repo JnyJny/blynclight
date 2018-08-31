@@ -4,7 +4,7 @@
 '''
 
 import math
-from blynclight import BlyncLight_API
+from blynclight import BlyncLight
 from time import sleep
 from argparse import ArgumentParser
 from itertools import cycle
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     colors = [rgb for rgb in Spectrum(steps=255)]
 
     try:
-        b = BlyncLight_API.available_lights()[args.light_id]
+        b = NewBlyncLight.available_lights()[args.light_id]
     except IndexError:
         print(f'light {args.light_id} unavailable')
         exit(-1)

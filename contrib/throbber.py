@@ -3,7 +3,7 @@
 '''BlyncLight intensifies.
 '''
 
-from blynclight import BlyncLight_API
+from blynclight import BlyncLight
 from time import sleep
 from argparse import ArgumentParser
 from itertools import cycle
@@ -14,7 +14,7 @@ def Gradient(start, stop, step, red=True, green=False, blue=False):
     '''
     colors = []
     for i in range(start, stop, step):
-        colors.append((i if red else 0, i if green else 0, i if blue else 0))
+        colors.append((i if red else 0, i if blue else 0, i if green else 0))
     return colors
 
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
                         default=0)
     parser.add_argument('-r', '--red',
                         action='store_true',
-                        default=True)
+                        default=False)
     parser.add_argument('-g', '--green',
                         action='store_true',
                         default=False)
@@ -51,12 +51,17 @@ if __name__ == '__main__':
         args.green = True
         args.blue = True
 
+    if not any([args.red, args.green, args.blue]):
+        args.red = True
+
     step = 8 * (min(args.fast, 24) + 1)
 
     colors = Gradient(0, 255, step, args.red, args.green, args.blue)
 
+    colors.extend(c for c in reversed(colors))
+
     try:
-        b = BlyncLight_API.available_lights()[args.light_id]
+        b = BlyncLight.available_lights()[args.light_id]
     except IndexError:
         print(f'light {args.light_id} is unavailable')
 
@@ -69,7 +74,7 @@ if __name__ == '__main__':
         while True:
             for color in cycle(colors):
                 b.color = color
-                sleep(0.1)
+                sleep(0.05)
     except KeyboardInterrupt:
         pass
     b.on = False
