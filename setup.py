@@ -45,7 +45,6 @@ setup(
     license='Apache License, Version 2.0',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
-    package_data={'blynclight': ['libs/*/*.so']},
     platforms=['any'],
     test_suite='pytest',
     zip_safe=zip_safe,

@@ -24,6 +24,16 @@ Install
 	  $ git clone https://github.com/JnyJny/blynclight.git
 	  $ cd blynclight; pip install -e .
 
+  
+Uninstall
+---------
+
+.. code:: bash
+
+	  $ pip uninstall blynclight
+
+	  
+
 Usage
 -----
 
@@ -31,9 +41,9 @@ Once installed, the BlyncLight is yours to command!
 
 .. code:: python
 
-	from blynclight import BlyncLight_API
+	from blynclight import BlyncLight
 
-	light = BlyncLight_API.first_light()
+	light = BlyncLight.first_light()
 
 	red, green, blue = (255, 0, 0), (0, 255, 0), (0, 0, 255)
 	
@@ -47,51 +57,7 @@ Once installed, the BlyncLight is yours to command!
 	light.bright = True           # the light is on and blue
 	light.on = False              # the light is off and blue
 	
-More examples can be found in the contrib directory of the git repo.
-
-
-Build
------
-Embrava distributes a Software Development Kit (SDK) for Windows,
-MacOS and Linux that developers must first `request`_ access to. The
-MacOS and Linux SDKs provide access to BlyncLight devices via a static
-library archive.  Developers then link their applications against the
-static library. Unfortunately, Python cannot access static library
-archives via the the ctypes module. Fortunately, it is relatively easy
-to unpackage a static library archive into object files and construct
-a dynamic or shared object. Provided of course that the archived
-objects are suitable for linking (compiled as position independent
-code and the right word length as the target python).
-
-
-1. `Register`_ with Embrava and receive SDK URLs for your operating system.
-   
-2. Clone the repo
-
-.. code:: bash
-
-          $ git clone https://github.com/JnyJny/blynclight.git
-
-	  
-3. Build and install the shared object from the SDK
-
-.. code:: bash
-
-          $ cd blynclight/blynclight_api && make URL=PLATFORM_URL install
-
-	  
-4. Install the package
-
-.. code:: bash
-
-          $ cd .. ; pip install -e .
-
-
-Uninstall with pip:
-
-.. code:: bash
-
-	  $ pip uninstall blynclight
+More examples can be found in the contrib directory.
 
 
 .. |pypi| image:: https://img.shields.io/pypi/v/blynclight.svg?style=flat-square&label=version
@@ -107,7 +73,5 @@ Uninstall with pip:
     :alt: Apache license version 2.0  
 
 .. _Embrava: https://embrava.com
-.. _register: https://embrava.com/pages/embrava-software-sdk
-.. _request:  https://embrava.com/pages/embrava-software-sdk
 
 
