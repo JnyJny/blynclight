@@ -3,12 +3,12 @@
 '''Flash Lights Impressively
 '''
 
-from blynclight import BlyncLight_API
+from blynclight import BlyncLight
 from itertools import cycle
 
 if __name__ == '__main__':
 
-    light = BlyncLight_API.first_light()
+    light = BlyncLight.first_light()
 
     colors = [(255, 0, 0), (0, 0, 255)]
 
