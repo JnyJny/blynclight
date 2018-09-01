@@ -3,10 +3,10 @@
 
 import ctypes
 import ctypes.util
-import platform
 import atexit
 
-__all__ = [ 'enumerate', 'open', 'read', 'write', 'close' ]
+__all__ = ['enumerate', 'open', 'read', 'write', 'close']
+
 
 class DeviceInfo(ctypes.Structure):
     def as_dict(self):
@@ -16,6 +16,7 @@ class DeviceInfo(ctypes.Structure):
                 continue
             ret[name] = getattr(self, name, None)
         return ret
+
 
 DeviceInfo._fields_ = [
     ('path', ctypes.c_char_p),
@@ -31,8 +32,10 @@ DeviceInfo._fields_ = [
     ('next', ctypes.POINTER(DeviceInfo)),
 ]
 
+
 class Device(ctypes.Structure):
     pass
+
 
 hidapi_libraries = ['hidapi',
                     'hidapi-hidraw',
@@ -54,7 +57,7 @@ hidapi.hid_enumerate.restype = ctypes.POINTER(DeviceInfo)
 hidapi.hid_free_enumeration.argstype = [ctypes.POINTER(DeviceInfo)]
 hidapi.hid_free_enumeration.restype = None
 
-hidapi.hid_open.argstype = [ctypes.c_ushort, 
+hidapi.hid_open.argstype = [ctypes.c_ushort,
                             ctypes.c_ushort,
                             ctypes.c_wchar_p]
 hidapi.hid_open.restype = ctypes.POINTER(Device)
@@ -84,6 +87,7 @@ hidapi.hid_read_timeout.restype = ctypes.c_int
 hidapi.hid_init()
 atexit.register(hidapi.hid_exit)
 
+
 def enumerate(vendor_id: int =0, product_id: int = 0):
     devices = []
     head = hidapi.hid_enumerate(vendor_id, product_id)
@@ -94,20 +98,22 @@ def enumerate(vendor_id: int =0, product_id: int = 0):
     hidapi.hid_free_enumeration(head)
     return devices
 
+
 def open(vendor_id: int, product_id: int):
     '''
-    
-    '''
-    
-    return hidapi.hid_open(vendor_id, product_id, None)
-    
 
-def write(handle: Device, data: ctypes.c_ubyte , ndata: int):
-    
+    '''
+
+    return hidapi.hid_open(vendor_id, product_id, None)
+
+
+def write(handle: Device, data: ctypes.c_ubyte, ndata: int):
+
     return hidapi.hid_write(handle, data, ndata)
 
+
 def read(handle, data, timeout=None):
-    
+
     ndata = ctypes.sizeof(data)
 
     if timeout:
@@ -115,8 +121,7 @@ def read(handle, data, timeout=None):
 
     return hidapi.hid_read(handle, data, ndata)
 
+
 def close(handle):
 
     hidapi.hid_close(handle)
-    
-
