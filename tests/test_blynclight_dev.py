@@ -2,10 +2,7 @@
 '''
 
 import pytest
-from blynclight import (BlyncLight,
-                        DeviceType,
-                        MusicVolume,
-                        FlashSpeed)
+from blynclight import BlyncLight
 
 
 @pytest.fixture
@@ -27,12 +24,12 @@ def test_blynclight_init(blynclight):
     assert blynclight.green == 0
     assert blynclight.off == 1
     assert blynclight.dim == 0
-    assert blynclight.flash == 0
-    assert blynclight.speed == 0
+    assert blynclight.bflash == 0
+    assert blynclight.bspeed == 0
     assert blynclight.pad0 == 0
     assert blynclight.mute == 0
     assert blynclight.music == 0
-    assert blynclight.start == 0
+    assert blynclight.play == 0
     assert blynclight.repeat == 0
     assert blynclight.pad1 == 0
     assert blynclight.volume == 0
@@ -72,13 +69,13 @@ def test_blynclight_bitfields(blynclight):
     assert blynclight.dim == 1
     blynclight.bright = 1
     assert blynclight.dim == 0
-    blynclight.flash = 1
-    assert blynclight.flash == 1
-    blynclight.flash = 0
-    assert blynclight.flash == 0
+    blynclight.bflash = 1
+    assert blynclight.bflash == 1
+    blynclight.bflash = 0
+    assert blynclight.bflash == 0
     for i in range(0, 3):
-        blynclight.speed = 1 << i
-        assert blynclight.speed == 1 << i
+        blynclight.bspeed = 1 << i
+        assert blynclight.bspeed == 1 << i
     blynclight.pad0 = 1
     assert blynclight.pad0 == 0
     blynclight.mute = 1
@@ -88,10 +85,10 @@ def test_blynclight_bitfields(blynclight):
     for i in range(0, 11):
         blynclight.music = i
         assert blynclight.music == i
-    blynclight.start = 1
-    assert blynclight.start == 1
-    blynclight.start = 0
-    assert blynclight.start == 0
+    blynclight.play = 1
+    assert blynclight.play == 1
+    blynclight.play = 0
+    assert blynclight.play == 0
     blynclight.repeat = 1
     assert blynclight.repeat == 1
     blynclight.repeat = 0
