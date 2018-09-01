@@ -2,16 +2,14 @@
 '''
 
 import ctypes
-from .constants import FlashSpeed, DeviceType, MusicVolume
 from .hid import enumerate as hid_enumerate
 from .hid import write as hid_write
 from .hid import open as hid_open
-from .hid import read as hid_read
 from .hid import close as hid_close
 
 
 class BlyncLight(ctypes.Structure):
-    '''BlyncLight 
+    '''BlyncLight
 
     The Embrava BlyncLight family of USB connected products responds
     to a 9-byte command word. The command word enables activation or
@@ -45,7 +43,7 @@ class BlyncLight(ctypes.Structure):
 
     The recommended way to obtain a BlyncLight object is to use either
     of these two class methods: available_lights or first_light.
-    
+
     >>> lights = BlyncLight.available_lights()
 
     or
@@ -69,8 +67,8 @@ class BlyncLight(ctypes.Structure):
     noticible effect.
 
     '''
-    
-    _EMBRAVA_VENDOR_ID=0x2c0d
+
+    _EMBRAVA_VENDOR_ID = 0x2c0d
     _fields_ = [('pad3', ctypes.c_uint64, 56),
                 ('report', ctypes.c_uint64, 8),
                 ('red', ctypes.c_uint64, 8),
@@ -82,13 +80,13 @@ class BlyncLight(ctypes.Structure):
                 ('speed', ctypes.c_uint64, 3),
                 ('pad0', ctypes.c_uint64, 2),
                 ('mute', ctypes.c_uint64, 1),
-                ('music', ctypes.c_uint64, 4),                
+                ('music', ctypes.c_uint64, 4),
                 ('start', ctypes.c_uint64, 1),
                 ('repeat', ctypes.c_uint64, 1),
                 ('pad1', ctypes.c_uint64, 2),
                 ('volume', ctypes.c_uint64, 4),
                 ('pad2', ctypes.c_uint64, 3),
-                ('eom', ctypes.c_uint64, 16),]
+                ('eom', ctypes.c_uint64, 16), ]
 
     @classmethod
     def available_lights(cls):
@@ -100,24 +98,23 @@ class BlyncLight(ctypes.Structure):
     @classmethod
     def first_light(cls):
         '''Returns the first BlyncLight device found.
-        
+
         Raises IOError if no lights are found.
-        
+
         '''
         try:
             return cls.available_lights()[0]
         except IndexError:
             raise IOError('no blynclights found')
-        
+
     @classmethod
     def _from_dict(cls, device):
         '''Configures a BlyncLight from a DeviceInfo dictionary.
         '''
         return cls(vendor_id=device['vendor_id'],
-                   product_id=device['product_id'])        
-                
+                   product_id=device['product_id'])
 
-    def __init__(self, vendor_id=None, product_id=0, immediate=True):
+    def __init__(self, vendor_id=None, product_id=1, immediate=True):
         '''
         :param vendor_id:  two-byte integer quantity, defaults to 0x2c0d
         :param product_id: two-byte integer quantity, defaults to 0
@@ -134,21 +131,21 @@ class BlyncLight(ctypes.Structure):
 
         '''
         self.immediate = False  # disable updates until we've got a viable
-                                # device handle from open
+        # device handle from open
         self.eom = 0xffff
         self.report = 0
         self.on = 0
-        
+
         vendor_id = vendor_id or self._EMBRAVA_VENDOR_ID
         self._handle = hid_open(vendor_id, product_id)
         if not self._handle:
             msg = f'unable to open device {vendor_id}:{product_id}'
             raise IOError(msg)
-        
+
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.immediate = immediate
-        
+
     @property
     def status(self):
         '''A dictionary of current device bit field values.
@@ -168,23 +165,23 @@ class BlyncLight(ctypes.Structure):
         '''
         try:
             hid_close(self._handle)
-        except:
+        except BaseException:
             pass
 
     def __repr__(self):
         '''
         '''
         return ''.join([f'{self.__class__.__name__}(',
-                        'vendor_id={self.vendor_id},',
-                        'product_id={self.product_id})'])
+                        f'vendor_id={self.vendor_id},',
+                        f'product_id={self.product_id})'])
 
     def __str__(self):
         # XXX prettier string?
-        return '\n'.join(f'{k:10s}: {v:X}' for k,v in self.status.items())
+        return '\n'.join(f'{k:10s}: {v:X}' for k, v in self.status.items())
 
     def __setattr__(self, name, value):
         '''__setattr__ is overridden to allow immediate or deferred
-        update of the target device. 
+        update of the target device.
 
         If the BlyncLight attribute 'immediate' is true, the contents
         of the light control bitfields are written to the target
@@ -193,18 +190,25 @@ class BlyncLight(ctypes.Structure):
         how immediate can be used to schedule updates to the light
         with more control.
         '''
-        
+        if name in ['report', 'pad0', 'pad1', 'pad2', 'pad3']:
+            return
+
+        if name == 'eom' and value != 0xffff:
+            return
+
         super().__setattr__(name, value)
+
         if name == 'immediate':
             return
-        if name in [n for n,c,b in self._fields_] and self.immediate:
+
+        if name in [n for n, c, b in self._fields_] and self.immediate:
             self.update_device()
 
     @property
     def on(self):
         '''The 'on' property is a negative logic alias for the 'off' attribute.
 
-        light.on = 1 
+        light.on = 1
 
         is equivalent to
 
@@ -216,7 +220,7 @@ class BlyncLight(ctypes.Structure):
               responsible if this somehow creates a black hole.
 
               To avoid soul crushing 'nothing' when turning the
-              light on, be sure to assign a color. 
+              light on, be sure to assign a color.
         '''
         return 0 if self.off else 1
 
@@ -233,7 +237,7 @@ class BlyncLight(ctypes.Structure):
         is equivalent to
 
         light.dim = 0
-        
+
         Dim/bright only takes effect if the light is on and if a color
         has been written to the device.
         '''
@@ -280,7 +284,7 @@ class BlyncLight(ctypes.Structure):
             self.immediate = False
         try:
             self.red = (newValue >> 16) & 0x00ff
-            self.blue = (newValue >>  8) & 0x00ff
+            self.blue = (newValue >> 8) & 0x00ff
             self.green = newValue & 0x00ff
             self.update_device()
             self.immediate = prev_imm
@@ -290,7 +294,6 @@ class BlyncLight(ctypes.Structure):
         self.red, self.blue, self.green = newValue[:3]
         self.update_device()
         self.immediate = prev_imm
-
 
     def update_device(self):
         '''This method writes the contents of the BlyncLight 9-byte control
