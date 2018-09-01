@@ -58,8 +58,10 @@ class BlyncLight(ctypes.Structure):
     Callers can defer device update by setting the 'immediate'
     attribute to False and calling device_update when ready
     to send new values to the device. Setting immediate to True
-    will then cause any updates to be immediate written to
+    will then cause any updates to be written without delay to
     the device.
+
+    ===CAVEAT===
 
     Before turning the light on, make sure to specify a color
     otherwise the device will not emit any light. It can be
@@ -125,7 +127,7 @@ class BlyncLight(ctypes.Structure):
         or written explicitly by calls to the update_device method.
 
         This behavior can be changed after instantiating a BlyncLight
-        but assigning True or False to the 'immediate' attribute. See
+        by assigning True or False to the 'immediate' attribute. See
         the 'color' property for an example of how and why this might
         be desired behavior.
 
