@@ -29,12 +29,12 @@ class BlyncLight(ctypes.Structure):
     green  : 8     Green component varies between 0-255
     off    : 1     0->on 1->off
     dim    : 1     0->bright 1->dim
-    flash  : 1     1->flash 0->steady
-    speed  : 3     0->off 1->low 2->medium 4->fast
+    bflash : 1     1->flash 0->steady
+    bspeed : 3     0->off 1->low 2->medium 4->fast
     pad    : 2
     mute   : 1     1->mute 0->unmute
     music  : 4     select a built-in musical tune
-    start  : 1     0->stop 1->play
+    play   : 1     0->stop 1->play
     repeat : 1     0->no repeat 1->repeat
     pad    : 2
     volume : 4     1-10, vary volume by 10%
@@ -78,12 +78,12 @@ class BlyncLight(ctypes.Structure):
                 ('green', ctypes.c_uint64, 8),
                 ('off', ctypes.c_uint64, 1),
                 ('dim', ctypes.c_uint64, 1),
-                ('flash', ctypes.c_uint64, 1),
-                ('speed', ctypes.c_uint64, 3),
+                ('bflash', ctypes.c_uint64, 1),
+                ('bspeed', ctypes.c_uint64, 3),
                 ('pad0', ctypes.c_uint64, 2),
                 ('mute', ctypes.c_uint64, 1),
                 ('music', ctypes.c_uint64, 4),
-                ('start', ctypes.c_uint64, 1),
+                ('play', ctypes.c_uint64, 1),
                 ('repeat', ctypes.c_uint64, 1),
                 ('pad1', ctypes.c_uint64, 2),
                 ('volume', ctypes.c_uint64, 4),
@@ -297,10 +297,61 @@ class BlyncLight(ctypes.Structure):
         self.update_device()
         self.immediate = prev_imm
 
+    @property
+    def flash(self):
+        '''Boolean controlling whether the device is in flash mode.
+
+        This property is linked to the speed property in the following way:
+
+        If flash is toggled from 0 to 1 and speed is zero, speed is set to 1
+
+        If callers want to control the flash and speed bitfields directly,
+        assign values to the bflash and bspeed attributes.
+        '''
+        return self.bflash
+
+    @flash.setter
+    def flash(self, newValue):
+        self.bflash = 1 if newValue else 0
+        if self.bflash and self.bspeed == 0:
+            self.bspeed = 1
+
+    @property
+    def speed(self):
+        '''Device light flash speed:
+           0 - off
+           1 - slow
+           2 - medium
+           3 - fast
+
+        This property is coupled to the flash property and will set flash
+        to off if speed is set to zero. If the caller wants to set the
+        flash mode and flash speed directly, use the bflash and bspeed
+        attributes instead.
+        '''
+        # XXX this is ugly but works
+        if self.bspeed == 0:
+            return 0
+        if self.bspeed == 1:
+            return 1
+        if self.bspeed == 2:
+            return 2
+        if self.bspeed == 4:
+            return 3
+        raise ValueError(f'bspeed out of bounds {self.fseed}')
+
+    @speed.setter
+    def speed(self, newValue):
+        if newValue == 0:
+            self.bspeed = 0
+            self.bflash = 0
+        else:
+            self.bspeed = (1 << newValue-1) & 0x07
+
     def update_device(self):
         '''This method writes the contents of the BlyncLight 9-byte control
         word to the target device. The method returns True if 9 bytes
-        are writtn, otherwise False. If the blynclight.hid.write
+        are written, otherwise False. If the blynclight.hid.write
         method returns -1, IOError is raised.
 
         :returns: bool
