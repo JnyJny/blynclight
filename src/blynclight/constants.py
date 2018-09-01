@@ -21,14 +21,15 @@ class DeviceType(enum.Enum):
 
 
 class FlashSpeed(enum.IntEnum):
-    OFF    = 0
-    LOW    = 1
+    OFF = 0
+    LOW = 1
     MEDIUM = 2
-    HIGH   = 4
+    HIGH = 4
 
 
 class MusicSelections(enum.Enum):
     pass
+
 
 class MusicVolume(enum.IntEnum):
     Vol010Percent = 1
