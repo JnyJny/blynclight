@@ -45,7 +45,7 @@ Once installed, the BlyncLight is yours to command!
 
 	light = BlyncLight.first_light()
 
-	red, green, blue = (255, 0, 0), (0, 255, 0), (0, 0, 255)
+	red, blue, green = (255, 0, 0), (0, 255, 0), (0, 0, 255)
 	
 	light.color = green           # the light is off and green
 	light.on = True               # the light is on and green
