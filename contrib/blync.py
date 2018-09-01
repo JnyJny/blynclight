@@ -22,7 +22,7 @@ def main():
     parser.add_argument('-M', '--mute', action='store_true', default=False)
     parser.add_argument('-v', '--volume', type=int, default=0)
     parser.add_argument('-V', '--verbose', action='store_true', default=False)
-    
+
     args = parser.parse_args()
 
     if args.light >= 0:
@@ -43,14 +43,13 @@ def main():
     light.repeat = args.repeat
     light.mute = args.mute
     light.volume = args.volume
-        
+
     if not args.dryrun:
         light.update_device()
-        
+
     if args.verbose or args.dryrun:
         print(light)
 
 
 if __name__ == '__main__':
     main()
-
