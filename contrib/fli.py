@@ -8,7 +8,11 @@ from itertools import cycle
 
 if __name__ == '__main__':
 
-    light = BlyncLight.first_light()
+    try:
+        light = BlyncLight.first_light()
+    except IOError as e:
+        print(e)
+        exit(-1)
 
     colors = [(255, 0, 0), (0, 0, 255)]
 
