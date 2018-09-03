@@ -10,26 +10,18 @@
 	<script>
 	 function onFunction() {
 	     var xhttp = new XMLHttpRequest();
-	     var url = "http://localhost:8000/blynclight/0/on";
+	     var url = "http://localhost:{{ port }}/blynclight/0/on";
 	     document.getElementById("theURL").innerHTML = url;
 	     xhttp.open("GET",url, true);
 	     xhttp.send();
 	 }
-	 
 	 function offFunction() {
 	     var xhttp = new XMLHttpRequest();
-	     var url = "http://localhost:8000/blynclight/0/off";
+	     var url = "http://localhost:{{ port }}/blynclight/0/off";
 	     document.getElementById("theURL").innerHTML = url;
 	     xhttp.open("GET",url, true);
 	     xhttp.send();	     
 	 }
 	</script>
-
     </body>
-    </html>
-
-<html>
-
-
-    
 </html>
