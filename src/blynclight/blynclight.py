@@ -140,8 +140,9 @@ class BlyncLight(ctypes.Structure):
 
         vendor_id = vendor_id or self._EMBRAVA_VENDOR_ID
         self._handle = hid_open(vendor_id, product_id)
-        if not self._handle:
-            msg = f'unable to open device {vendor_id}:{product_id}'
+        if self._handle is None:
+            errno = ctypes.get_errno()
+            msg = f'hid_open({vendor_id:x},{product_id}) failed {errno}'
             raise IOError(msg)
 
         self.vendor_id = vendor_id
@@ -250,7 +251,7 @@ class BlyncLight(ctypes.Structure):
         self.dim = 0 if newValue else 1
 
     @property
-    def color(self, newValue):
+    def color(self):
         '''Color is a convenience property to access the red, blue and green
         bit field attributes as a tuple.  The tuple returned is three
         single byte quatities (0-255) representing red, blue and green
