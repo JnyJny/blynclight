@@ -1,23 +1,9 @@
 '''bindings for Embrava BlyncLight devices.
 
 This module provides python bindings for interacting with the Embrava
-BlyncLight family of devices via the open source Human Interface
-Device (HID) application programming interface library.  The hidapi is
-available for Linux, MacOS and Windows:
+BlyncLight family of devices via PyUSB.
 
-  Linux:  yum|apt-get -y install hidapi
-  MacOS:  brew install hidapi
-Windows:  ???
-
-More information about hidapi can be found at:
- - http://www.signal11.us/oss/hidapi/
- - https://github.com/signal11/hidapi
-
-Access to the functions provided by the hidapi library is handled by
-the blycnlight.hid package, but is hidden from the user.
-
-Once the hidapi library is installed, you can control Embrava
-BlyncLight devices directly:
+Once PyUSB is installed, you can control Embrava BlyncLight devices directly:
 
 > from blynclight import BlyncLight
 > b = BlyncLight.first_light()
@@ -51,6 +37,7 @@ from .constants import (DeviceType, FlashSpeed,
                         MusicSelections, MusicVolume)
 
 from .proxy import Proxy as BlyncLightProxy
+
 
 __all__ = [
     'BlyncLight',

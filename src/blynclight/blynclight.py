@@ -2,11 +2,7 @@
 '''
 
 import ctypes
-from .hid import enumerate as hid_enumerate
-from .hid import write as hid_write
-from .hid import open as hid_open
-from .hid import close as hid_close
-
+import usb.core
 
 class BlyncLight(ctypes.Structure):
     '''BlyncLight
@@ -94,32 +90,30 @@ class BlyncLight(ctypes.Structure):
     def available_lights(cls):
         '''Returns a list of BlyncLight objects found at run-time.
         '''
-        return [cls._from_dict(d) for d in
-                hid_enumerate(vendor_id=cls._EMBRAVA_VENDOR_ID)]
+        return [cls(d) for d in
+                usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID, find_all=True)]
+
+    def light_info(cls, light_id=-1):
+        '''
+        '''
+        lights = [d for d in 
+                  usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID, find_all=True)]
+        return lights[light_id] if light_id >= 0 else lights
 
     @classmethod
     def first_light(cls):
         '''Returns the first BlyncLight device found.
 
         Raises IOError if no lights are found.
-
         '''
         try:
             return cls.available_lights()[0]
         except IndexError:
             raise IOError('no blynclights found')
 
-    @classmethod
-    def _from_dict(cls, device):
-        '''Configures a BlyncLight from a DeviceInfo dictionary.
+    def __init__(self, device, immediate=True):
         '''
-        return cls(vendor_id=device['vendor_id'],
-                   product_id=device['product_id'])
-
-    def __init__(self, vendor_id=None, product_id=1, immediate=True):
-        '''
-        :param vendor_id:  two-byte integer quantity, defaults to 0x2c0d
-        :param product_id: two-byte integer quantity, defaults to 0
+        :param device: 
         :param immediate:  optional boolean, defaults to True
 
         The 'immediate' argument indicates whether changes to device
@@ -133,21 +127,40 @@ class BlyncLight(ctypes.Structure):
 
         '''
         self.immediate = False  # disable updates until we've got a viable
-        # device handle from open
+                                # device handle from open
         self.eom = 0xffff
         self.report = 0
         self.on = 0
 
-        vendor_id = vendor_id or self._EMBRAVA_VENDOR_ID
-        self._handle = hid_open(vendor_id, product_id)
-        if self._handle is None:
-            errno = ctypes.get_errno()
-            msg = f'hid_open({vendor_id:x},{product_id}) failed {errno}'
-            raise IOError(msg)
+        self.device = device
 
-        self.vendor_id = vendor_id
-        self.product_id = product_id
         self.immediate = immediate
+
+    @property
+    def device(self):
+        try:
+            return self._device
+        except AttributeError:
+            pass
+        self._device = None
+#        self._device = usb.core.find(idVendor=self._EMBRAVA_VENDOR_ID)
+#        for cfg in self._device:
+#            for iface in cfg:
+#                if self._device.is_kernel_driver_active(iface.bInterfaceNumber):
+#                    self._device.detach_kernel_driver(iface.bInterfaceNumber)
+#        self._device.set_configuration()
+#        self._device.reset()
+        return self._device
+
+    @device.setter
+    def device(self, newValue):
+        self._device = newValue
+        for cfg in self._device:
+            for iface in cfg:
+                if self._device.is_kernel_driver_active(iface.bInterfaceNumber):
+                    self._device.detach_kernel_driver(iface.bInterfaceNumber)
+        self._device.set_configuration()
+        self._device.reset()
 
     @property
     def status(self):
@@ -163,20 +176,11 @@ class BlyncLight(ctypes.Structure):
             status.setdefault(name, v)
         return status
 
-    def __del__(self):
-        '''Release HID handle when done with object.
-        '''
-        try:
-            hid_close(self._handle)
-        except BaseException:
-            pass
-
     def __repr__(self):
         '''
         '''
         return ''.join([f'{self.__class__.__name__}(',
-                        f'vendor_id={self.vendor_id},',
-                        f'product_id={self.product_id})'])
+                        f'device={self._dev!r})'])
 
     def __str__(self):
         # XXX prettier string?
@@ -206,6 +210,13 @@ class BlyncLight(ctypes.Structure):
 
         if name in [n for n, c, b in self._fields_] and self.immediate:
             self.update_device()
+
+    @property
+    def bytes(self):
+        return [ self.red, self.blue, self.green,
+                 self.off|self.dim|self.bflash|self.bspeed|self.pad0,
+                 self.mute|self.music|self.play|self.repeat|self.pad1,
+                 self.volume|self.pad2, 0xff, 0xff]
 
     @property
     def on(self):
@@ -295,7 +306,8 @@ class BlyncLight(ctypes.Structure):
         except TypeError:
             pass
         self.red, self.blue, self.green = newValue[:3]
-        self.update_device()
+        if prev_imm:
+            self.update_device()
         self.immediate = prev_imm
 
     @property
@@ -349,19 +361,25 @@ class BlyncLight(ctypes.Structure):
         else:
             self.bspeed = (1 << newValue-1) & 0x07
 
-    def update_device(self):
-        '''This method writes the contents of the BlyncLight 9-byte control
-        word to the target device. The method returns True if 9 bytes
-        are written, otherwise False. If the blynclight.hid.write
-        method returns -1, IOError is raised.
+    _bmRequestType = 0x21
+    _bRequest = 0x9
+    _wValue = 0x200
+    _wIndex = 0
+    _timeout = 1000
 
+    def update_device(self):
+        '''This method writes the contents of the BlyncLight control
+        word to the target device. The method returns True if the word
+        is written, otherwise False.
         :returns: bool
         '''
-        offset = 7
-        size = ctypes.sizeof(self) - offset
-        ref = ctypes.byref(self, offset)
-        nbytes = hid_write(self._handle, ref, size)
-        if nbytes == -1:
-            # XXX support calling hid_error for better error reporting
-            raise IOError('hid_write')
-        return nbytes == size
+        
+        nbytes = self.device.ctrl_transfer(self._bmRequestType,
+                                           self._bRequest, 
+                                           self._wValue, 
+                                           self._wIndex,
+                                           self.bytes, 
+                                           self._timeout)
+        if nbytes != len(self.bytes):
+            raise IOError('write')
+

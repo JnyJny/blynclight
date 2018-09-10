@@ -60,6 +60,7 @@ setup(
         'pytest-pep8',
     ],
     install_requires=[
+	'pyusb',
         'requests',
     ],
 )
