@@ -19,7 +19,6 @@ class BlyncLight(ctypes.Structure):
 
     The command word's bit fields are defined as:
 
-    report : 8     Always 1 byte zero
     red    : 8     Red component varies between 0-255
     blue   : 8     Blue component varies between 0-255
     green  : 8     Green component varies between 0-255
@@ -33,9 +32,8 @@ class BlyncLight(ctypes.Structure):
     play   : 1     0->stop 1->play
     repeat : 1     0->no repeat 1->repeat
     pad    : 2
-    volume : 4     1-10, vary volume by 10%
+    volume : 4     1-10, increase volume by 10%
     pad    : 2
-    EOM    : 16    The End of Message field is always 0xfff
 
     The recommended way to obtain a BlyncLight object is to use either
     of these two class methods: available_lights or first_light.
@@ -46,16 +44,14 @@ class BlyncLight(ctypes.Structure):
 
     >>> light = BlyncLight.first_light()
 
-
     Usage Notes
 
-    Any changes to the bit fields in the ByncLight class will
-    immediately be sent to the associated device by default.
-    Callers can defer device update by setting the 'immediate'
-    attribute to False and calling device_update when ready
-    to send new values to the device. Setting immediate to True
-    will then cause any updates to be written without delay to
-    the device.
+    Any updates to the bit fields in the ByncLight class will
+    immediately be sent to the associated device by default.  Callers
+    can defer device update by setting the 'immediate' attribute to
+    False and calling device_update when ready to send new values to
+    the device. Setting 'immediate' to True will then cause any
+    following updates to sent without delay to the device.
 
     ===CAVEAT===
 
@@ -67,9 +63,7 @@ class BlyncLight(ctypes.Structure):
     '''
 
     _EMBRAVA_VENDOR_ID = 0x2c0d
-    _fields_ = [('pad3', ctypes.c_uint64, 56),
-                ('report', ctypes.c_uint64, 8),
-                ('red', ctypes.c_uint64, 8),
+    _fields_ = [('red', ctypes.c_uint64, 8),
                 ('blue', ctypes.c_uint64, 8),
                 ('green', ctypes.c_uint64, 8),
                 ('off', ctypes.c_uint64, 1),
@@ -83,21 +77,24 @@ class BlyncLight(ctypes.Structure):
                 ('repeat', ctypes.c_uint64, 1),
                 ('pad1', ctypes.c_uint64, 2),
                 ('volume', ctypes.c_uint64, 4),
-                ('pad2', ctypes.c_uint64, 3),
-                ('eom', ctypes.c_uint64, 16), ]
+                ('pad2', ctypes.c_uint64, 3),]
+
 
     @classmethod
     def available_lights(cls):
         '''Returns a list of BlyncLight objects found at run-time.
         '''
         return [cls(d) for d in
-                usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID, find_all=True)]
+                usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID,
+                              find_all=True)]
 
+    @classmethod
     def light_info(cls, light_id=-1):
         '''
         '''
         lights = [d for d in 
-                  usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID, find_all=True)]
+                  usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID,
+                                find_all=True)]
         return lights[light_id] if light_id >= 0 else lights
 
     @classmethod
@@ -128,13 +125,19 @@ class BlyncLight(ctypes.Structure):
         '''
         self.immediate = False  # disable updates until we've got a viable
                                 # device handle from open
-        self.eom = 0xffff
-        self.report = 0
         self.on = 0
-
         self.device = device
-
         self.immediate = immediate
+
+    def _reset(self):
+        '''
+        '''
+        for cfg in self._device:
+            for ife in cfg:
+                if self._device.is_kernel_driver_active(ife.bInterfaceNumber):
+                    self._device.detach_kernel_driver(ife.bInterfaceNumber)
+        self._device.set_configuration()
+        self._device.reset()
 
     @property
     def device(self):
@@ -143,24 +146,12 @@ class BlyncLight(ctypes.Structure):
         except AttributeError:
             pass
         self._device = None
-#        self._device = usb.core.find(idVendor=self._EMBRAVA_VENDOR_ID)
-#        for cfg in self._device:
-#            for iface in cfg:
-#                if self._device.is_kernel_driver_active(iface.bInterfaceNumber):
-#                    self._device.detach_kernel_driver(iface.bInterfaceNumber)
-#        self._device.set_configuration()
-#        self._device.reset()
         return self._device
 
     @device.setter
     def device(self, newValue):
         self._device = newValue
-        for cfg in self._device:
-            for iface in cfg:
-                if self._device.is_kernel_driver_active(iface.bInterfaceNumber):
-                    self._device.detach_kernel_driver(iface.bInterfaceNumber)
-        self._device.set_configuration()
-        self._device.reset()
+        self._reset()
 
     @property
     def status(self):
@@ -168,9 +159,7 @@ class BlyncLight(ctypes.Structure):
         '''
         status = {}
         for name, *_ in self._fields_:
-            if name in ['report', 'eom',
-                        'pad0', 'pad1',
-                        'pad2', 'pad3']:
+            if name.startswith('pad'):
                 continue
             v = getattr(self, name, None)
             status.setdefault(name, v)
@@ -193,14 +182,11 @@ class BlyncLight(ctypes.Structure):
         If the BlyncLight attribute 'immediate' is true, the contents
         of the light control bitfields are written to the target
         device (if the attribute being updated is a member of the
-        _fields_ array).  See the 'colors' property for an example of
-        how immediate can be used to schedule updates to the light
-        with more control.
+        _fields_ array).  See the 'color' property for an example of
+        how 'immediate' can be used to perform batch updates to the
+        light's state.
         '''
-        if name in ['report', 'pad0', 'pad1', 'pad2', 'pad3']:
-            return
-
-        if name == 'eom' and value != 0xffff:
+        if name.startswith('pad'):
             return
 
         super().__setattr__(name, value)
@@ -211,7 +197,6 @@ class BlyncLight(ctypes.Structure):
         if name in [n for n, c, b in self._fields_] and self.immediate:
             self.update_device()
 
-    @property
     def bytes(self):
         return [ self.red, self.blue, self.green,
                  self.off|self.dim|self.bflash|self.bspeed|self.pad0,
@@ -373,13 +358,15 @@ class BlyncLight(ctypes.Structure):
         is written, otherwise False.
         :returns: bool
         '''
+
+        data = self.bytes()
         
         nbytes = self.device.ctrl_transfer(self._bmRequestType,
-                                           self._bRequest, 
-                                           self._wValue, 
+                                           self._bRequest,
+                                           self._wValue,
                                            self._wIndex,
-                                           self.bytes, 
+                                           data,
                                            self._timeout)
-        if nbytes != len(self.bytes):
-            raise IOError('write')
+        return nbytes == len(data)
+
 

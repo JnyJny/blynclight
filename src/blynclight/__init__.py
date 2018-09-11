@@ -3,7 +3,7 @@
 This module provides python bindings for interacting with the Embrava
 BlyncLight family of devices via PyUSB.
 
-Once PyUSB is installed, you can control Embrava BlyncLight devices directly:
+You can control Embrava BlyncLight devices directly:
 
 > from blynclight import BlyncLight
 > b = BlyncLight.first_light()
@@ -27,7 +27,6 @@ Or control the device via http API:
 The BlyncLightProxy method of control requires a HTTP server that
 provides the expected REST interface. This is somewhat more involved
 than talking to the light directly, but allows more flexibility.
-
 '''
 
 
