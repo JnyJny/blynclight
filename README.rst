@@ -3,8 +3,8 @@ Embrava BlyncLight
 
 |pypi| |license| |python|
 
-**blynclight** is a Python package that provides python bindings for
-the `Embrava`_ BlyncLight family of products. These bindings have been
+**blynclight** is a Python 3 package that provides bindings for the
+`Embrava`_ BlyncLight family of products. These bindings have been
 tested on MacOS and Linux using an Embrava V30 USB connected light.
 
 
@@ -15,14 +15,14 @@ Install
 
 .. code:: bash
 
-	  $ pip install blynclight
+	  $ pip3 install blynclight
 
 2. Clone the repo
 
 .. code:: bash
 
 	  $ git clone https://github.com/JnyJny/blynclight.git
-	  $ cd blynclight; pip install -e .
+	  $ cd blynclight; pip3 install -e .
 
   
 Uninstall
@@ -30,7 +30,7 @@ Uninstall
 
 .. code:: bash
 
-	  $ pip uninstall blynclight
+	  $ pip3 uninstall blynclight
 
 	  
 
