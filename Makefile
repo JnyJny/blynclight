@@ -1,6 +1,6 @@
 # data-bench-python Makefile
 # 
-VERSION=0.3.0
+VERSION=0.3.1
 PYTHON= python3
 SETUP_PY= setup.py
 TWINE= twine
