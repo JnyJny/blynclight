@@ -51,7 +51,8 @@ setup(
     setup_requires=[
         'pytest-runner',
         'readme-renderer',
-        'twine'
+        'twine',
+        'wheel',
     ],
     tests_require=[
         'pytest',
