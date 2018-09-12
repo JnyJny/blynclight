@@ -1,10 +1,36 @@
 '''Embrava Blynclight Support
 '''
-
 import ctypes
 import usb.core
 
-class BlyncLight(ctypes.Structure):
+from .constants import EMBRAVA_VENDOR_ID
+
+class BlyncLightBitfields(ctypes.Structure):
+    _fields_ = [('red', ctypes.c_uint64, 8),
+                ('blue', ctypes.c_uint64, 8),
+                ('green', ctypes.c_uint64, 8),
+                ('off', ctypes.c_uint64, 1),
+                ('dim', ctypes.c_uint64, 1),
+                ('flash', ctypes.c_uint64, 1),
+                ('speed', ctypes.c_uint64, 3),
+                ('pad0', ctypes.c_uint64, 2),
+                ('music', ctypes.c_uint64, 4),
+                ('play', ctypes.c_uint64, 1),
+                ('repeat', ctypes.c_uint64, 1),
+                ('pad1', ctypes.c_uint64, 2),
+                ('volume', ctypes.c_uint64, 4),
+                ('pad2', ctypes.c_uint64, 3),
+                ('mute', ctypes.c_uint64, 1),
+                ('eob0', ctypes.c_uint64, 8),
+                ('eob1', ctypes.c_uint64, 8),]
+
+class BlyncLightCommand(ctypes.Union):
+    _fields_ = [ ('field', BlyncLightBitfields),
+                 ('bytes', ctypes.c_ubyte * 8),
+                 ('word', ctypes.c_ulonglong),]
+    
+
+class BlyncLight(BlyncLightCommand):
     '''BlyncLight
 
     The Embrava BlyncLight family of USB connected products responds
@@ -62,51 +88,29 @@ class BlyncLight(ctypes.Structure):
 
     '''
 
-    _EMBRAVA_VENDOR_ID = 0x2c0d
-    _fields_ = [('red', ctypes.c_uint64, 8),
-                ('blue', ctypes.c_uint64, 8),
-                ('green', ctypes.c_uint64, 8),
-                ('off', ctypes.c_uint64, 1),
-                ('dim', ctypes.c_uint64, 1),
-                ('bflash', ctypes.c_uint64, 1),
-                ('bspeed', ctypes.c_uint64, 3),
-                ('pad0', ctypes.c_uint64, 2),
-                ('mute', ctypes.c_uint64, 1),
-                ('music', ctypes.c_uint64, 4),
-                ('play', ctypes.c_uint64, 1),
-                ('repeat', ctypes.c_uint64, 1),
-                ('pad1', ctypes.c_uint64, 2),
-                ('volume', ctypes.c_uint64, 4),
-                ('pad2', ctypes.c_uint64, 3),]
-
-
     @classmethod
-    def available_lights(cls):
+    def available_lights(cls, vendor_id=None):
         '''Returns a list of BlyncLight objects found at run-time.
         '''
-        return [cls(d) for d in
-                usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID,
-                              find_all=True)]
+        vendor_id = vendor_id or EMBRAVA_VENDOR_ID
+        return [cls(d) for d in usb.core.find(idVendor=vendor_id, find_all=True)]
 
     @classmethod
-    def light_info(cls, light_id=-1):
+    def light_info(cls, light_id=-1, vendor_id=None):
         '''
         '''
-        lights = [d for d in 
-                  usb.core.find(idVendor=cls._EMBRAVA_VENDOR_ID,
-                                find_all=True)]
+        vendor_id = vendor_id or EMBRAVA_VENDOR_ID
+        lights = usb.core.find(idVendor=vendor_id, find_all=True)
+                               
         return lights[light_id] if light_id >= 0 else lights
 
     @classmethod
-    def first_light(cls):
+    def first_light(cls, vendor_id=None):
         '''Returns the first BlyncLight device found.
-
-        Raises IOError if no lights are found.
         '''
-        try:
-            return cls.available_lights()[0]
-        except IndexError:
-            raise IOError('no blynclights found')
+        vendor_id = vendor_id or EMBRAVA_VENDOR_ID
+        return cls(usb.core.find(idVendor=vendor_id))
+
 
     def __init__(self, device, immediate=True):
         '''
@@ -129,16 +133,6 @@ class BlyncLight(ctypes.Structure):
         self.device = device
         self.immediate = immediate
 
-    def _reset(self):
-        '''
-        '''
-        for cfg in self._device:
-            for ife in cfg:
-                if self._device.is_kernel_driver_active(ife.bInterfaceNumber):
-                    self._device.detach_kernel_driver(ife.bInterfaceNumber)
-        self._device.set_configuration()
-        self._device.reset()
-
     @property
     def device(self):
         try:
@@ -151,14 +145,21 @@ class BlyncLight(ctypes.Structure):
     @device.setter
     def device(self, newValue):
         self._device = newValue
-        self._reset()
+        try:
+            for cfg in self._device:
+                for n in [i.bInterfaceNumber for i in cfg]:
+                    if self._device.is_kernel_driver_active(n):
+                        self._device.detach_kernel_driver(n)
+            self._device.set_configuration()
+        except Exception as e:
+            raise ValueError()
 
     @property
     def status(self):
         '''A dictionary of current device bit field values.
         '''
         status = {}
-        for name, *_ in self._fields_:
+        for name, *_ in self._fields_['fields']._fields:
             if name.startswith('pad'):
                 continue
             v = getattr(self, name, None)
@@ -169,7 +170,7 @@ class BlyncLight(ctypes.Structure):
         '''
         '''
         return ''.join([f'{self.__class__.__name__}(',
-                        f'device={self._dev!r})'])
+                        f'device={self.device!r})'])
 
     def __str__(self):
         # XXX prettier string?
@@ -186,22 +187,38 @@ class BlyncLight(ctypes.Structure):
         how 'immediate' can be used to perform batch updates to the
         light's state.
         '''
-        if name.startswith('pad'):
-            return
-
         super().__setattr__(name, value)
 
         if name == 'immediate':
             return
 
-        if name in [n for n, c, b in self._fields_] and self.immediate:
+        if self.immediate:
             self.update_device()
 
-    def bytes(self):
-        return [ self.red, self.blue, self.green,
-                 self.off|self.dim|self.bflash|self.bspeed|self.pad0,
-                 self.mute|self.music|self.play|self.repeat|self.pad1,
-                 self.volume|self.pad2, 0xff, 0xff]
+    @property
+    def red(self):
+        return self.field.red
+
+    @red.setter
+    def red(self, newValue):
+        self.field.red = newValue & 0xff
+
+    @property
+    def blue(self):
+        return self.field.blue
+
+    @blue.setter
+    def blue(self, newValue):
+        self.field.blue = newValue & 0xff
+
+    @property
+    def green(self):
+        return self.field.green
+
+    @green.setter
+    def green(self, newValue):
+        self.field.green = newValue & 0xff
+
 
     @property
     def on(self):
@@ -221,11 +238,11 @@ class BlyncLight(ctypes.Structure):
               To avoid soul crushing 'nothing' when turning the
               light on, be sure to assign a color.
         '''
-        return 0 if self.off else 1
+        return 0 if self.field.off else 1
 
     @on.setter
     def on(self, newValue):
-        self.off = 0 if newValue else 1
+        self.field.off = 0 if newValue else 1
 
     @property
     def bright(self):
@@ -240,11 +257,11 @@ class BlyncLight(ctypes.Structure):
         Dim/bright only takes effect if the light is on and if a color
         has been written to the device.
         '''
-        return 0 if self.dim else 1
+        return 0 if self.field.dim else 1
 
     @bright.setter
     def bright(self, newValue):
-        self.dim = 0 if newValue else 1
+        self.field.dim = 0 if newValue else 1
 
     @property
     def color(self):
@@ -274,7 +291,7 @@ class BlyncLight(ctypes.Structure):
         light.green = newGreen   # this assignment triggers update_device()
 
         '''
-        return (self.red, self.blue, self.green)
+        return (self.field.red, self.field.blue, self.field.green)
 
     @color.setter
     def color(self, newValue):
@@ -282,15 +299,15 @@ class BlyncLight(ctypes.Structure):
         if prev_imm:
             self.immediate = False
         try:
-            self.red = (newValue >> 16) & 0x00ff
-            self.blue = (newValue >> 8) & 0x00ff
-            self.green = newValue & 0x00ff
+            self.field.red = (newValue >> 16) & 0x00ff
+            self.field.blue = (newValue >> 8) & 0x00ff
+            self.field.green = newValue & 0x00ff
             self.update_device()
             self.immediate = prev_imm
             return
         except TypeError:
             pass
-        self.red, self.blue, self.green = newValue[:3]
+        self.field.red, self.field.blue, self.field.green = newValue[:3]
         if prev_imm:
             self.update_device()
         self.immediate = prev_imm
@@ -306,13 +323,13 @@ class BlyncLight(ctypes.Structure):
         If callers want to control the flash and speed bitfields directly,
         assign values to the bflash and bspeed attributes.
         '''
-        return self.bflash
+        return self.field.flash
 
     @flash.setter
     def flash(self, newValue):
-        self.bflash = 1 if newValue else 0
-        if self.bflash and self.bspeed == 0:
-            self.bspeed = 1
+        self.field.flash = 1 if newValue else 0
+        if self.field.flash and self.field.speed == 0:
+            self.field.speed = 1
 
     @property
     def speed(self):
@@ -328,23 +345,23 @@ class BlyncLight(ctypes.Structure):
         attributes instead.
         '''
         # XXX this is ugly but works
-        if self.bspeed == 0:
+        if self.field.speed == 0:
             return 0
-        if self.bspeed == 1:
+        if self.field.speed == 1:
             return 1
-        if self.bspeed == 2:
+        if self.field.speed == 2:
             return 2
-        if self.bspeed == 4:
+        if self.field.speed == 4:
             return 3
         raise ValueError(f'bspeed out of bounds {self.fseed}')
 
     @speed.setter
     def speed(self, newValue):
         if newValue == 0:
-            self.bspeed = 0
-            self.bflash = 0
+            self.field.speed = 0
+            self.field.flash = 0
         else:
-            self.bspeed = (1 << newValue-1) & 0x07
+            self.field.speed = (1 << newValue-1) & 0x07
 
     _bmRequestType = 0x21
     _bRequest = 0x9
@@ -359,14 +376,16 @@ class BlyncLight(ctypes.Structure):
         :returns: bool
         '''
 
-        data = self.bytes()
+
         
         nbytes = self.device.ctrl_transfer(self._bmRequestType,
                                            self._bRequest,
                                            self._wValue,
                                            self._wIndex,
-                                           data,
+                                           self.bytes,
                                            self._timeout)
-        return nbytes == len(data)
+        return nbytes == len(self.bytes)
 
 
+
+    
