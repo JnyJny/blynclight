@@ -22,8 +22,15 @@ def main():
     parser.add_argument('-M', '--mute', action='store_true', default=False)
     parser.add_argument('-v', '--volume', type=int, default=0)
     parser.add_argument('-V', '--verbose', action='store_true', default=False)
+    parser.add_argument('--list', action='store_true', default=False)
 
     args = parser.parse_args()
+
+    if args.list:
+        for i, light in enumerate(BlyncLight.light_info()):
+            print(i,repr(light))
+        exit(0)
+
 
     if args.light >= 0:
         light = BlyncLight.available_lights()[args.light]
