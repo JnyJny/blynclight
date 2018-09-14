@@ -353,7 +353,7 @@ class BlyncLight(BlyncLightCommand):
             return 2
         if self.field.speed == 4:
             return 3
-        raise ValueError(f'bspeed out of bounds {self.fseed}')
+        raise ValueError(f'speed out of bounds {self.field.speed}')
 
     @speed.setter
     def speed(self, newValue):
