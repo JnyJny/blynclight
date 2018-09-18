@@ -3,7 +3,7 @@
 
 import enum
 
-EMBRAVA_VENDOR_ID=0x2c0d
+EMBRAVA_VENDOR_IDS=[0x2c0d, 0x0e53]
 
 class DeviceType(enum.Enum):
     INVALID = 0

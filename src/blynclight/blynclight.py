@@ -3,7 +3,7 @@
 import ctypes
 import usb.core
 
-from .constants import EMBRAVA_VENDOR_ID
+from .constants import EMBRAVA_VENDOR_IDS
 
 class BlyncLightBitfields(ctypes.Structure):
     _fields_ = [('red', ctypes.c_uint64, 8),
@@ -91,25 +91,42 @@ class BlyncLight(BlyncLightCommand):
     @classmethod
     def available_lights(cls, vendor_id=None):
         '''Returns a list of BlyncLight objects found at run-time.
+        
+        If no BlyncLights are found, an empty list is returned.
         '''
-        vendor_id = vendor_id or EMBRAVA_VENDOR_ID
-        return [cls(d) for d in usb.core.find(idVendor=vendor_id, find_all=True)]
+        if vendor_id:
+            return [cls(d) for d in usb.core.find(idVendor=vendor_id,
+                                                  find_all=True)]
+
+        return [cls(d) for d in usb.core.find(find_all=True) 
+                if d.idVendor in EMBRAVA_VENDOR_IDS]
 
     @classmethod
     def light_info(cls, light_id=-1, vendor_id=None):
         '''
         '''
-        vendor_id = vendor_id or EMBRAVA_VENDOR_ID
-        lights = usb.core.find(idVendor=vendor_id, find_all=True)
+
+        if vendor_id:
+            lights = usb.core.find(idVendor=vendor_id, find_all=True)
+        else:
+            lights = [x for x in usb.core.find(find_all=True) 
+                      if x.idVendor in EMBRAVA_VENDOR_IDS]
                                
         return lights[light_id] if light_id >= 0 else lights
 
     @classmethod
     def first_light(cls, vendor_id=None):
         '''Returns the first BlyncLight device found.
+        
+        Raises ValueError if no BlyncLights are found.
         '''
-        vendor_id = vendor_id or EMBRAVA_VENDOR_ID
-        return cls(usb.core.find(idVendor=vendor_id))
+        if vendor_id:
+            return cls(usb.core.find(idVendor=vendor_id))
+
+        for device in usb.core.find(find_all=True):
+            if device.idVendor in EMBRAVA_VENDOR_IDS:
+                return cls(device)
+        raise ValueError('no blynclights found')
 
 
     def __init__(self, device, immediate=True):
