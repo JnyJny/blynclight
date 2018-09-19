@@ -13,18 +13,11 @@ Install
 
 0. Install ``libusb`` for your platform:
 
-**Linux**
-
 .. code:: bash
 
-          (rpm based distros)# yum install libusb 
-          (apt based distros)# apt-get install libusb-1.0
-
-**Mac OS**
-
-.. code:: bash
-   
-          $ brew install libusb
+          (rpm Linux distros)# yum install libusb 
+          (apt Linux distros)# apt-get install libusb-1.0
+          (macOS using brew) $ brew install libusb
 
 1. pip
 
