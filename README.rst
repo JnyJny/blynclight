@@ -11,7 +11,7 @@ tested on MacOS and Linux using an Embrava V30 USB connected light.
 Install
 -------
 
-0. Install ```libusb``` for your platform:
+0. Install ``libusb`` for your platform:
 
 **Linux**
 
