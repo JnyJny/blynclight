@@ -18,7 +18,7 @@ Install
 .. code:: bash
 
           (rpm based distros)# yum install libusb 
-          (apt based distros)# apt-get install libusb.1.0
+          (apt based distros)# apt-get install libusb-1.0
 
 **Mac OS**
 
