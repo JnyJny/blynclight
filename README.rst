@@ -11,6 +11,21 @@ tested on MacOS and Linux using an Embrava V30 USB connected light.
 Install
 -------
 
+0. Install ```libusb``` for your platform:
+
+Linux
+
+.. code:: bash
+
+          (rpm based distros)# yum install libusb 
+          (apt based distros)# apt-get install python3-libusb1
+
+Mac OS
+
+.. code:: bash
+   
+          $ brew install libusb
+
 1. pip
 
 .. code:: bash
