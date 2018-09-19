@@ -5,21 +5,28 @@
 
 from blynclight import BlyncLight
 from itertools import cycle
+from collections import deque
+from time import sleep
 
 if __name__ == '__main__':
 
-    try:
-        light = BlyncLight.first_light()
-    except IOError as e:
-        print(e)
-        exit(-1)
+    lights = deque(BlyncLight.available_lights())
 
-    colors = [(255, 0, 0), (0, 0, 255)]
+    colors = [(255, 0, 0), (0, 255, 0),
+              (0, 255, 0), (0, 0, 255),
+              (0, 0, 255), (255, 0 ,0)]
 
-    try:
+    for light in lights:
         light.on = True
+
+    try:
         for color in cycle(colors):
-            light.color = color
+            lights.rotate(1)
+            lights[0].color = color
+            sleep(0.01)
     except KeyboardInterrupt:
         pass
-    light.on = False
+
+    for light in lights:
+        light.on = False
+
