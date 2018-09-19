@@ -13,14 +13,14 @@ Install
 
 0. Install ```libusb``` for your platform:
 
-Linux
+**Linux**
 
 .. code:: bash
 
           (rpm based distros)# yum install libusb 
           (apt based distros)# apt-get install python3-libusb1
 
-Mac OS
+**Mac OS**
 
 .. code:: bash
    
