@@ -1,6 +1,6 @@
-# data-bench-python Makefile
+# blynclight Makefile
 # 
-VERSION=0.3.1
+VERSION=0.4.0
 PYTHON= python3
 SETUP_PY= setup.py
 TWINE= twine
