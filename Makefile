@@ -9,6 +9,8 @@ TEMP= build dist
 
 .PHONY: VERSION
 
+BLACK= black
+
 all:
 	@echo "VERSION=$(VERSION)"
 	@echo "Targets:"
@@ -19,6 +21,9 @@ all:
 	@echo "	release - VERSION=$(VERSION) readme bdist sdist"
 	@echo "	upload  - release and upload to PYPI=$(PYPI)"
 	@echo "	clean   - cleanup temporary files: TEMP=$(TEMP)"
+
+black:
+	$(BLACK) -l 79 .
 
 VERSION:
 	@echo $(VERSION) > $@
