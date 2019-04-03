@@ -1,4 +1,4 @@
-'''bindings for Embrava BlyncLight devices.
+"""bindings for Embrava BlyncLight devices.
 
 This module provides python bindings for interacting with the Embrava
 BlyncLight family of devices via PyUSB.
@@ -27,22 +27,21 @@ Or control the device via http API:
 The BlyncLightProxy method of control requires a HTTP server that
 provides the expected REST interface. This is somewhat more involved
 than talking to the light directly, but allows more flexibility.
-'''
+"""
 
 
 from .blynclight import BlyncLight
 
-from .constants import (DeviceType, FlashSpeed,
-                        MusicSelections, MusicVolume)
+from .constants import DeviceType, FlashSpeed, MusicSelections, MusicVolume
 
 from .proxy import Proxy as BlyncLightProxy
 
 
 __all__ = [
-    'BlyncLight',
-    'BlyncLightProxy',
-    'DeviceType',
-    'FlashSpeed',
-    'MusicSelections',
-    'MusicVolume',
+    "BlyncLight",
+    "BlyncLightProxy",
+    "DeviceType",
+    "FlashSpeed",
+    "MusicSelections",
+    "MusicVolume",
 ]
