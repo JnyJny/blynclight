@@ -15,3 +15,5 @@ src/blynclight/.boneyard/*
 .coverage
 dist
 build
+.venv/*
+tst*
