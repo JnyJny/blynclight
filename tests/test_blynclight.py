@@ -1,8 +1,9 @@
-'''
-'''
+"""
+"""
 
 import pytest
 from blynclight import BlyncLight
+from blynclight.constants import EMBRAVA_VENDOR_IDS
 
 
 @pytest.fixture
@@ -24,20 +25,20 @@ def test_blynclight_init(blynclight):
     assert blynclight.green == 0
     assert blynclight.off == 1
     assert blynclight.dim == 0
-    assert blynclight.bflash == 0
-    assert blynclight.bspeed == 0
+    assert blynclight.flash == 0
+    assert blynclight.speed == 0
     assert blynclight.pad0 == 0
-    assert blynclight.mute == 0
     assert blynclight.music == 0
     assert blynclight.play == 0
     assert blynclight.repeat == 0
     assert blynclight.pad1 == 0
     assert blynclight.volume == 0
     assert blynclight.pad2 == 0
-    assert blynclight.eom == 0xffff
-    assert blynclight.vendor_id == 0x2c0d
+    assert blynclight.mute == 0
+    assert blynclight.eob == 0xFFFF
+    assert blynclight.vendor_id in EMBRAVA_VENDOR_IDS
     assert blynclight.product_id > 0
-    assert blynclight._handle
+    assert blynclight.device
     assert blynclight.immediate
 
 
@@ -46,7 +47,7 @@ def test_blynclight_bitfields(blynclight):
     blynclight.immediate = False
     assert not blynclight.immediate
     blynclight.report = 1
-    assert blynclight.report == 0
+    assert blynclight.report == 1
     blynclight.red = 0x11
     assert blynclight.red == 0x11
     blynclight.blue = 0x22
@@ -69,15 +70,13 @@ def test_blynclight_bitfields(blynclight):
     assert blynclight.dim == 1
     blynclight.bright = 1
     assert blynclight.dim == 0
-    blynclight.bflash = 1
-    assert blynclight.bflash == 1
-    blynclight.bflash = 0
-    assert blynclight.bflash == 0
+    blynclight.flash = 1
+    assert blynclight.flash == 1
+    blynclight.flash = 0
+    assert blynclight.flash == 0
     for i in range(0, 3):
-        blynclight.bspeed = 1 << i
-        assert blynclight.bspeed == 1 << i
-    blynclight.pad0 = 1
-    assert blynclight.pad0 == 0
+        blynclight.speed = 1 << i
+        assert blynclight.speed == 1 << i
     blynclight.mute = 1
     assert blynclight.mute == 1
     blynclight.mute = 0
@@ -93,17 +92,13 @@ def test_blynclight_bitfields(blynclight):
     assert blynclight.repeat == 1
     blynclight.repeat = 0
     assert blynclight.repeat == 0
-    blynclight.pad1 = 1
-    assert blynclight.pad1 == 0
+
     for i in range(0, 11):
         blynclight.volume = i
         assert blynclight.volume == i
-    blynclight.pad2 = 1
-    assert blynclight.pad2 == 0
-    blynclight.eom = 0
-    assert blynclight.eom == 0xffff
-    assert blynclight.vendor_id == 0x2c0d
+
+    assert blynclight.vendor_id in EMBRAVA_VENDOR_IDS
     assert blynclight.product_id > 0
-    assert blynclight._handle
+    assert blynclight.device
     blynclight.immediate = True
     assert blynclight.immediate
