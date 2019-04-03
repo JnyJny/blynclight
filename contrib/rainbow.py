@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-'''BlyncLights Love Rainbows!
-'''
+"""BlyncLights Love Rainbows!
+"""
 
 import math
 from blynclight import BlyncLight
@@ -11,7 +11,7 @@ from itertools import cycle
 
 
 def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
-    '''generator function that returns 'steps' rbg tuples.
+    """generator function that returns 'steps' rbg tuples.
 
         steps: optional integer, default=64
     frequency: optional 3-tuple for rbg frequency, default=(.3,.3,.3)
@@ -20,9 +20,9 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
         width: optional integer, default=127
 
     Returns (r, b, g) where each member is a value between 0 and 255.
-    '''
+    """
 
-    frequency = frequency or (.3, .3, .3)
+    frequency = frequency or (0.3, 0.3, 0.3)
     phase = phase or (0, 2, 4)
 
     for i in range(steps):
@@ -32,19 +32,15 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
         yield (r, b, g)
 
 
-if __name__ == '__main__':
-    '''
-    '''
+if __name__ == "__main__":
+    """
+    """
 
     parser = ArgumentParser()
 
-    parser.add_argument('-l', '--light-id',
-                        type=int,
-                        default=0)
+    parser.add_argument("-l", "--light-id", type=int, default=0)
 
-    parser.add_argument('-s', '--speed',
-                        action='count',
-                        default=1)
+    parser.add_argument("-s", "--speed", action="count", default=1)
 
     args = parser.parse_args()
 
@@ -53,10 +49,10 @@ if __name__ == '__main__':
     try:
         b = BlyncLight.available_lights()[args.light_id]
     except IndexError:
-        print(f'light {args.light_id} unavailable')
+        print(f"light {args.light_id} unavailable")
         exit(-1)
 
-    interval = (args.speed * .1)
+    interval = args.speed * 0.1
 
     b.on = True
     try:

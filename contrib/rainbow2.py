@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-'''BlyncLights Love Rainbows!
-'''
+"""BlyncLights Love Rainbows!
+"""
 
 from blynclight import BlyncLightProxy
 from argparse import ArgumentParser
@@ -11,7 +11,7 @@ from itertools import cycle
 
 
 def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
-    '''generator function that returns 'steps' rgb tuples.
+    """generator function that returns 'steps' rgb tuples.
 
         steps: optional integer, default=64
     frequency: optional 3-tuple for rgb frequency, default=(.3,.3,.3)
@@ -21,8 +21,8 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
 
     Returns (r, g, b) where each member is a value between 0 and 255.
 
-    '''
-    frequency = frequency or (.3, .3, .3)
+    """
+    frequency = frequency or (0.3, 0.3, 0.3)
     phase = phase or (0, 2, 4)
 
     for i in range(steps):
@@ -32,32 +32,28 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
         yield (r, g, b)
 
 
-if __name__ == '__main__':
-    '''
-    '''
+if __name__ == "__main__":
+    """
+    """
 
     parser = ArgumentParser()
 
-    parser.add_argument('-l', '--light-id',
-                        type=int,
-                        default=0)
+    parser.add_argument("-l", "--light-id", type=int, default=0)
 
-    parser.add_argument('-s', '--speed',
-                        action='count',
-                        default=1)
+    parser.add_argument("-s", "--speed", action="count", default=1)
 
     args = parser.parse_args()
 
     colors = [rgb for rgb in Spectrum(255)]
 
-    interval = (args.speed * 0.1)
+    interval = args.speed * 0.1
 
     proxy = BlyncLightProxy()
 
     try:
         proxy.lights[args.light_id]
     except IndexError:
-        print(f'Light {args.light_id} not available.')
+        print(f"Light {args.light_id} not available.")
         exit(-1)
 
     try:
