@@ -1,6 +1,6 @@
 # blynclight Makefile
 # 
-VERSION=0.4.2
+VERSION=0.4.3
 PYTHON= python3
 SETUP_PY= setup.py
 TWINE= twine
