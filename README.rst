@@ -11,13 +11,13 @@ tested on MacOS and Linux using an Embrava V30 USB connected light.
 Install
 -------
 
-0. Install ``libusb`` for your platform:
+0. Install `hidapi`_ for your platform:
 
 .. code:: bash
 
-          (rpm Linux distros)# yum install libusb 
-          (apt Linux distros)# apt-get install libusb-1.0
-          (macOS using brew) $ brew install libusb
+          (rpm Linux distros)# yum install XXXX
+          (apt Linux distros)# apt-get install XXXX
+          (macOS using brew) $ brew install hidapi
 
 1. pip
 
@@ -81,5 +81,7 @@ More examples can be found in the contrib directory.
     :alt: Apache license version 2.0  
 
 .. _Embrava: https://embrava.com
+
+.. _hidapi: https://github.com/signal11/hidapi
 
 
