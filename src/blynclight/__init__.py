@@ -1,7 +1,9 @@
 """bindings for Embrava BlyncLight devices.
 
 This module provides python bindings for interacting with the Embrava
-BlyncLight family of devices via PyUSB.
+BlyncLight family of devices via Human Input Device Application
+Programming Interface (HIDAPI). HIDAPI is a C language library that
+provides access to USB devices.
 
 You can control Embrava BlyncLight devices directly:
 
@@ -29,10 +31,9 @@ provides the expected REST interface. This is somewhat more involved
 than talking to the light directly, but allows more flexibility.
 """
 
-
 from .blynclight import BlyncLight
 
-from .constants import DeviceType, FlashSpeed, MusicSelections, MusicVolume
+from .constants import FlashSpeed, MusicSelections, MusicVolume
 
 from .proxy import Proxy as BlyncLightProxy
 
@@ -40,7 +41,6 @@ from .proxy import Proxy as BlyncLightProxy
 __all__ = [
     "BlyncLight",
     "BlyncLightProxy",
-    "DeviceType",
     "FlashSpeed",
     "MusicSelections",
     "MusicVolume",

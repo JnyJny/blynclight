@@ -28,6 +28,12 @@ class FlashSpeed(enum.IntEnum):
     MEDIUM = 2
     HIGH = 4
 
+    def is_valid(self, newSpeed):
+        """Returns True if newSpeed is a valid
+        flash speed value.
+        """
+        return speed in [self.OFF, self.LOW, self.MEDIUM, self.HIGH]
+
 
 class MusicSelections(enum.Enum):
     pass

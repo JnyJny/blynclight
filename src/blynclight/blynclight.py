@@ -18,7 +18,7 @@ class BlyncLight(ctypes.Structure):
     model's firmware, muting the music or changing it's volume.
 
     Not all devices have musical capability and music related functionality
-    has not yet been tested. 31 Aug 2018
+    has not yet been tested. 3 Apr 2019
 
     The recommended way to obtain a BlyncLight object is to use either
     of these two class methods: available_lights or first_light.
@@ -29,14 +29,28 @@ class BlyncLight(ctypes.Structure):
 
     >>> light = BlyncLight.first_light()
 
+    Features of the light are controlled by assigning values to
+    attributes of the BlyncLight object:
+
+    >>> light.red = 0xff
+    >>> light.on = 1
+    >>> light.on = 0
+
     Usage Notes
 
     Any updates to the bit fields in the ByncLight class will
-    immediately be sent to the associated device by default.  Callers
-    can defer device update by setting the 'immediate' attribute to
-    False. Any changes to command fields will not be written to the
-    device. Setting 'immediate' to True will then write the current
-    state of the command buffer to the device.
+    immediately be written to the hardware device by default.  Callers
+    can defer hardware update by setting the 'immediate' attribute to
+    False or zero. Any changes to command fields will not be written to
+    the device. Setting 'immediate' to True will write the current
+    state of the command word to the device. The BlyncLight object
+    also provides a context manager method that can be used to
+    defer updates:
+
+    >>> with light.updates_paused():
+    ...     light.red = 0
+    ...     light.blue = 255
+    ...     light.on = 1
 
     ===CAVEAT===
 
@@ -45,7 +59,8 @@ class BlyncLight(ctypes.Structure):
     very frustrating to turn the light on and not have any
     noticible effect.
 
-    
+    Command Word Documentation
+
     The Embrava BlyncLight command word's bit fields are:
 
     report : 8     Must be zero
@@ -54,12 +69,12 @@ class BlyncLight(ctypes.Structure):
     green  : 8     Green component varies between 0-255
     off    : 1     0==on     1==off
     dim    : 1     0==bright 1==dim
-    flash  : 1     0==steady 1==>flash  
+    flash  : 1     0==steady 1==flash  
     speed  : 3     0==off 1==low 2==medium 4==fast
     pad    : 2
     mute   : 1     0==unmute 1==mute 
     music  : 4     select a built-in musical tune
-    play   : 1     0==>stop 1==play
+    play   : 1     0==stop 1==play
     repeat : 1     0==no repeat 1==repeat
     pad    : 2
     volume : 4     1-10, increase volume by 10%
@@ -117,15 +132,35 @@ class BlyncLight(ctypes.Structure):
             raise ValueError("No BlyncLights Found")
 
     def __init__(self, vendor_id, product_id, immediate=True):
+        """:param vendor_id: 16-bit integer
+        :param product_id: 16-bit integer
+        :param immediate: optional boolean
+
+        The vendor_id and product_id together specify a unique USB
+        device. 
+
+        ValueError is raised if vendor_id does not match known
+        Embrava IDs.
+        
+        ValueError is raised if the device specified by
+        vendor_id:product_id is already open.
+
         """
-        """
+        if vendor_id not in EMBRAVA_VENDOR_IDS:
+            raise ValueError(f"unknown vendor id 0x{vendor_id:04}")
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.reset(flush=False)
         self.immediate = immediate
 
     def reset(self, flush=True):
-        """
+        """Returns the command word to a known state
+        and writes the command to the device if flush
+        is True.
+
+        On return the immediate attribute is zero.
+
+        :param flush: optional boolean
         """
         self.immediate = 0
         for name, typ, sz in self._fields_:
@@ -136,23 +171,31 @@ class BlyncLight(ctypes.Structure):
             self.device.write(self.bytes)
 
     def __str__(self):
-        s = [f"{self!r}"]
+        s = [f"Device: {self.device.identifier}"]
         for name in self.commands:
             value = getattr(self, name)
             s.append(f"\t0x{value:04x} : {name}")
         return "\n".join(s)
 
     def __len__(self):
-        """The length of the command buffer in bytes.
+        """The length of the command word in bytes (9).
         """
         return 9
 
     def __del__(self):
+        """Sets all light attributes to their default values
+        and updates the device before closing the USB device.
+        """
         self.reset()
         self.device.close()
 
     def __setattr__(self, name, value):
-        """
+        """Setting any BlyncLight command attribute triggers a write
+        to the device if the immediate attribute is 1. If immediate
+        is 0, the in-memory representation is changed but the
+        hardware is not updated with the new values. Setting
+        immediate to 1 will flush the in-memory command word
+        to the hardware.
         """
         super().__setattr__(name, value)
         if name in self.commands and self.immediate:
@@ -160,6 +203,9 @@ class BlyncLight(ctypes.Structure):
 
     @property
     def device(self):
+        """A blynclight.hid.HidDevice providing write access to
+        an Embrava BlyncLight device.
+        """
         try:
             return self._device
         except AttributeError:
@@ -169,13 +215,13 @@ class BlyncLight(ctypes.Structure):
 
     @property
     def bytes(self):
-        """Nine-byte string representation of the command buffer.
+        """A bytes representation of the 9 byte command word.
         """
         return bytes(self)[: len(self)]
 
     @property
     def commands(self):
-        """List of valid BlyncLight command directives.
+        """List of valid BlyncLight command fields.
         """
         try:
             return self._commands
@@ -190,7 +236,8 @@ class BlyncLight(ctypes.Structure):
     def updates_paused(self):
         """Context manager that suspends immediate updating of the device
         for the duration of the manager's execution. When the manager exits
-        the immediate bit is reset to it's previous value.
+        the immediate bit is reset to it's previous value, which may trigger
+        a write to the hardware.
         """
         imm = self.immediate
         self.immediate = 0
@@ -207,7 +254,7 @@ class BlyncLight(ctypes.Structure):
         three colors at once. 
 
         e.g.
-        
+        >> r,b,g = light.colors
         >> light.colors = (0xaa, 0xbb, 0xcc)
         >> light.colors = 0xaabbcc
 
@@ -228,7 +275,7 @@ class BlyncLight(ctypes.Structure):
 
     @property
     def on(self):
-        """Inverse logic accessor for 'off'.
+        """Inverse logic accessor for 'off' attribute.
         """
         return 0 if self.off else 1
 
@@ -238,7 +285,7 @@ class BlyncLight(ctypes.Structure):
 
     @property
     def bright(self):
-        """Inverse logic accessor for 'dim'.
+        """Inverse logic accessor for 'dim' attribute.
         """
         return 0 if self.dim else 1
 
