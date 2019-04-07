@@ -59,5 +59,5 @@ setup(
         "black",
     ],
     tests_require=["pytest"],
-    install_requires=["requests"],
+    install_requires=["requests", "Click"],
 )

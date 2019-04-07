@@ -7,30 +7,57 @@ from blynclight import BlyncLight
 from itertools import cycle
 from collections import deque
 from time import sleep
+import click
 
-if __name__ == "__main__":
+def rotatable_color(intensity: str):
+    '''
+    :param intensity: string hexadecimal number
+    :return: collections.deque of integers
+    '''
+    I = (0xff & int(intensity, 16)) >> 0
+    return deque([I, 0, 0])
 
-    lights = deque(BlyncLight.available_lights())
 
-    colors = [
-        (255, 0, 0),
-        (0, 255, 0),
-        (0, 255, 0),
-        (0, 0, 255),
-        (0, 0, 255),
-        (255, 0, 0),
-    ]
+@click.command()
+@click.option('-l', '--light-id', default=0, help='Integer light identfier.')
+@click.option('-i', '--interval', default=0.1, help='Float interval in seconds to flash.')
+@click.option('-c', '--count', default=-1, help='Integer count to flash impressively.')
+@click.option('-I', '--intensity', default='0xff', help='8-bit color intensity.' )
+@click.option('-a', '--available', is_flag=True, help='List available BlyncLights and exit.')
+def flash_light_impressively(light_id, interval, count, intensity, available):
+    '''FLI - Flash Light Impressively
 
-    for light in lights:
-        light.on = True
+    Cycles the light identified by light_id thru red, green and blue
+    with the given intensity count times, pausing for interval
+    seconds. It can be stupid annoying. Apologize to your cow-orkers
+    for me.
+
+    '''
+
+    if available:
+        BlyncLight.report_available()
+        return
+    
+    try:
+        light = BlyncLight.get_light(light_id)
+    except Exception as e:
+        return
+
+    light.on = 1
+    
+    color = rotatable_color(intensity)
 
     try:
-        for color in cycle(colors):
-            lights.rotate(1)
-            lights[0].color = color
-            sleep(0.01)
+        while count != 0:
+            count -= 1
+            color.rotate(1)
+            light.color = list(color)
+            sleep(interval)
     except KeyboardInterrupt:
         pass
 
-    for light in lights:
-        light.on = False
+
+if __name__ == "__main__":
+
+    flash_light_impressively()
+
