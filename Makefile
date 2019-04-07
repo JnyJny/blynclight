@@ -1,5 +1,5 @@
 # blynclight Makefile
-# 
+#
 VERSION=0.4.3
 PYTHON= python3
 SETUP_PY= setup.py
@@ -7,13 +7,14 @@ TWINE= twine
 PYPI= testpypi
 TEMP= build dist
 
-.PHONY: VERSION
+.PHONY: VERSION black test sdist readme release upload
 
 BLACK= black
 
 all:
 	@echo "VERSION=$(VERSION)"
 	@echo "Targets:"
+	@echo " black   - run black code formatter"
 	@echo "	test    - run pytest"
 	@echo "	bdist   - binary distribution"
 	@echo "	sdist   - source distribution"
@@ -22,11 +23,11 @@ all:
 	@echo "	upload  - release and upload to PYPI=$(PYPI)"
 	@echo "	clean   - cleanup temporary files: TEMP=$(TEMP)"
 
-black:
-	$(BLACK) -l 79 .
-
 VERSION:
 	@echo $(VERSION) > $@
+
+black:
+	$(BLACK) -l 79 .
 
 test: VERSION
 	$(PYTHON) $(SETUP_PY) test
