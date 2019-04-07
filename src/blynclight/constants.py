@@ -1,10 +1,12 @@
-"""
+"""Embrava Device Constants
 """
 
 import enum
 
-EMBRAVA_VENDOR_IDS = [0x2C0D, 0x0E53]
-
+EMBRAVA_VENDOR_IDS = [0x2c0d, 0x0e53]
+END_OF_COMMAND = 0xffff
+COMMAND_LENGTH = 9
+PAD_VALUE = 0
 
 class DeviceType(enum.Enum):
     INVALID = 0
@@ -28,11 +30,12 @@ class FlashSpeed(enum.IntEnum):
     MEDIUM = 2
     HIGH = 4
 
-    def is_valid(self, newSpeed):
-        """Returns True if newSpeed is a valid
-        flash speed value.
+    def is_valid(self, speed):
+        """Returns True if speed is a valid flash speed value.
+
         """
         return speed in [self.OFF, self.LOW, self.MEDIUM, self.HIGH]
+    
 
 
 class MusicSelections(enum.Enum):

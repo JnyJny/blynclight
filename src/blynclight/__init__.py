@@ -8,7 +8,7 @@ provides access to USB devices.
 You can control Embrava BlyncLight devices directly:
 
 > from blynclight import BlyncLight
-> b = BlyncLight.first_light()
+> b = BlyncLight.get_light()
 > b.color = (0, 255, 0)                         # set color to blue
 > b.on = True                                   # turn light on
 > b.color = (255, 0, 0)                         # set color to red
@@ -35,12 +35,19 @@ from .blynclight import BlyncLight
 
 from .constants import FlashSpeed, MusicSelections, MusicVolume
 
+from .exceptions import (BlyncLightNotFound,
+                         BlyncLightUnknownDevice,
+                         BlyncLightInUse, )
+
 from .proxy import Proxy as BlyncLightProxy
 
 
 __all__ = [
     "BlyncLight",
     "BlyncLightProxy",
+    "BlyncLightNotFound",
+    "BlyncLightInUse",
+    "BlyncLightUnknownDevice",
     "FlashSpeed",
     "MusicSelections",
     "MusicVolume",

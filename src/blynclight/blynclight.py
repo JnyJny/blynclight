@@ -1,13 +1,19 @@
 """Embrava Blynclight Support
 """
-import ctypes
-from .hid import HidDevice
-from .constants import EMBRAVA_VENDOR_IDS
+from ctypes import Structure, c_uint64
 from contextlib import contextmanager
+from .hid import HidDevice
+from .constants import (EMBRAVA_VENDOR_IDS,
+                        END_OF_COMMAND,
+                        COMMAND_LENGTH,
+                        PAD_VALUE,)
+from .exceptions import (BlyncLightNotFound,
+                         BlyncLightUnknownDevice,
+                         BlyncLightInUse,)
 
 
-class BlyncLight(ctypes.Structure):
 
+class BlyncLight(Structure):
     """BlyncLight
 
     The Embrava BlyncLight family of USB connected products responds
@@ -15,19 +21,16 @@ class BlyncLight(ctypes.Structure):
     deactivation of various features; turning the light on and off,
     changing it's color, causing the light to flash, dimming or
     brightening, playing musical tunes stored in some BlyncLight
-    model's firmware, muting the music or changing it's volume.
+    model's firmware, muting or changing the volume of the playing
+    music.
 
-    Not all devices have musical capability and music related functionality
-    has not yet been tested. 3 Apr 2019
+    Not all devices have musical capability and music related
+    functionality has not yet been tested. 3 Apr 2019
 
-    The recommended way to obtain a BlyncLight object is to use either
-    of these two class methods: available_lights or first_light.
+    The recommended way to obtain a BlyncLight object is to use the
+    class method get_light().
 
-    >>> lights = BlyncLight.available_lights()
-
-    or
-
-    >>> light = BlyncLight.first_light()
+    >>> light = BlyncLight.get_light()
 
     Features of the light are controlled by assigning values to
     attributes of the BlyncLight object:
@@ -37,20 +40,46 @@ class BlyncLight(ctypes.Structure):
     >>> light.on = 0
 
     Usage Notes
+    ===========
 
-    Any updates to the bit fields in the ByncLight class will
-    immediately be written to the hardware device by default.  Callers
-    can defer hardware update by setting the 'immediate' attribute to
-    False or zero. Any changes to command fields will not be written to
-    the device. Setting 'immediate' to True will write the current
-    state of the command word to the device. The BlyncLight object
-    also provides a context manager method that can be used to
+    The BlyncLight object is an in-memory representation of the
+    state of the hardware device. I have not been able to discern how
+    to read the device's current state, so every time a new object is
+    instantiated it writes a known state to the device by default.
+
+    Additionally, any updates to the bit fields in the ByncLight class
+    will be immediately written to the hardware device by default.
+    
+    Finally, when a BlyncLight object is deallocated it will attempt
+    to return the light to a known quiescent state before releasing
+    the device. 
+
+    Callers can defer hardware updates by setting the 'immediate'
+    attribute to False. Any changes to command fields will not be
+    written to the device. Setting 'immediate' to True will write the
+    current state of the command word to the device. The BlyncLight
+    object also provides a context manager method that can be used to
     defer updates:
 
     >>> with light.updates_paused():
     ...     light.red = 0
     ...     light.blue = 255
-    ...     light.on = 1
+    ...     light.green = 0
+    ...     light.on = True
+
+    is equivalent to:
+
+    >>> light.immediate = False
+    >>> light.red = 0
+    >>> light.blue = 255
+    >>> light.green = 0
+    >>> light.on = True
+    >>> light.immediate = True
+
+    is equivalent (almost) to:
+
+    >>> light.color = (0, 255, 0)
+    >>> light.on = True
 
     ===CAVEAT===
 
@@ -60,8 +89,10 @@ class BlyncLight(ctypes.Structure):
     noticible effect.
 
     Command Word Documentation
+    ==========================
 
-    The Embrava BlyncLight command word's bit fields are:
+
+    The Embrava BlyncLight command word bit fields are:
 
     report : 8     Must be zero
     red    : 8     Red component varies between 0-255
@@ -79,94 +110,157 @@ class BlyncLight(ctypes.Structure):
     pad    : 2
     volume : 4     1-10, increase volume by 10%
     pad    : 2
-    eob    : 16    End Of Buffer field, must be 0xffff
+    eoc    : 16    End Of Command field, must be 0xffff
+
     """
 
     _fields_ = [
-        ("report", ctypes.c_uint64, 8),
-        ("red", ctypes.c_uint64, 8),
-        ("blue", ctypes.c_uint64, 8),
-        ("green", ctypes.c_uint64, 8),
-        ("off", ctypes.c_uint64, 1),
-        ("dim", ctypes.c_uint64, 1),
-        ("flash", ctypes.c_uint64, 1),
-        ("speed", ctypes.c_uint64, 3),
-        ("pad0", ctypes.c_uint64, 2),
-        ("music", ctypes.c_uint64, 4),
-        ("play", ctypes.c_uint64, 1),
-        ("repeat", ctypes.c_uint64, 1),
-        ("pad1", ctypes.c_uint64, 2),
-        ("volume", ctypes.c_uint64, 4),
-        ("pad2", ctypes.c_uint64, 3),
-        ("mute", ctypes.c_uint64, 1),
-        ("eob", ctypes.c_uint64, 16),
-        ("pad3", ctypes.c_uint64, 23),
-        ("immediate", ctypes.c_uint64, 1),
+        ("report", c_uint64, 8),
+        ("red", c_uint64, 8),
+        ("blue", c_uint64, 8),
+        ("green", c_uint64, 8),
+        ("off", c_uint64, 1),
+        ("dim", c_uint64, 1),
+        ("flash", c_uint64, 1),
+        ("speed", c_uint64, 3),
+        ("pad0", c_uint64, 2),
+        ("music", c_uint64, 4),
+        ("play", c_uint64, 1),
+        ("repeat", c_uint64, 1),
+        ("pad1", c_uint64, 2),
+        ("volume", c_uint64, 4),
+        ("pad2", c_uint64, 3),
+        ("mute", c_uint64, 1),
+        ("eoc", c_uint64, 16),
+        # End of Command Word
+        # - pad3 and immediate round out the
+        #   length of _fields_ to 128 bits
+        ("pad3", c_uint64, 55),
+        ("immediate", c_uint64, 1),
     ]
 
-    _ignore_ = ("report", "pad", "eob")
+    _ignore_ = ("report", "pad", "eoc")
 
+    # XXX available_lights should return a dictionary to keep
+    #     from instantiating BlyncLights which makes it harder
+    #     to use those devices later on. Otherwise we need to
+    #     start caching and managing open USB HID devices which
+    #     is complex and error prone.
+    
     @classmethod
     def available_lights(cls):
-        """Returns a list of BlyncLight objects found at run-time.
-        If no BlyncLights are found, an empty list is returned.
+        """Returns a list of dictonary entries, each entry describing an
+        Embrava BlyncLight device. If no matching devices are found, an empty
+        list is returned.
+
+        :return: list of dictionaries
+
         """
-        lights = []
-        for devi in HidDevice.enumerate():
-            if devi["vendor_id"] in EMBRAVA_VENDOR_IDS:
-                light = cls(
-                    vendor_id=devi["vendor_id"], product_id=devi["product_id"]
-                )
-                lights.append(light)
-        return lights
+
+        is_blynclight = lambda d: d.get('vendor_id') in EMBRAVA_VENDOR_IDS
+
+        return [info for info in HidDevice.enumerate() if is_blynclight(info)]
+
 
     @classmethod
-    def first_light(cls):
-        """Returns the first BlyncLight found at run-time.
+    def get_light(cls, light_id=0):
+        """Returns a BlyncLight object accessed by index 'light_id'
+        into a list returned by available_lights().
 
-        ValueError is raised if no light is found.
+        - BlyncLightNotFound raised if light_id is not found.
+        - BlyncLightInUse raised if BlyncLight has already been opened.
+
+        :param light_id: optional integer
+        :return: BlyncLight
         """
         try:
-            return cls.available_lights()[0]
+            return cls.from_dict(cls.available_lights()[light_id])
         except IndexError:
-            raise ValueError("No BlyncLights Found")
+            raise BlyncLightNotFound(f'Light for {light_id} not found.')
 
+    @classmethod
+    def from_dict(cls, info):
+        '''Returns a BlyncLight configured with the contents of the supplied
+        dictionary 'info'. The keys 'vendor_id' and 'product_id' are required.
+
+        - BlyncLightInUse raised if specified light is already open.
+
+        :param info: dictionary
+        :return: BlyncLight
+        '''
+        
+        return cls(info.get('vendor_id'), info.get('product_id'))
+
+
+    @classmethod
+    def report_available(cls):
+        '''Prints an ugly report to stdout about each available BlyncLight
+        device. Report sort of lies. A light may be in use and so not really
+        "available". I'll fix it later.
+        '''
+        lights = cls.available_lights()
+        print('Number of available lights:', len(lights))
+        for i, info in enumerate(lights):
+            print("{:>20s}:ID:VALUE".format('KEY'))
+            for k,v in info.items():
+                if len(str(v)) == 0:
+                    continue
+                if isinstance(v, int):
+                    v = hex(v)
+                if isinstance(v, bytes):
+                    v = v.decode('utf-8')
+                print(f'{k:>20s}:{i:02d}:{v:s}')
+            print()    
+
+    
     def __init__(self, vendor_id, product_id, immediate=True):
-        """:param vendor_id: 16-bit integer
+        """Initialize a BlyncLight for use.
+
+        :param vendor_id:  16-bit integer
         :param product_id: 16-bit integer
-        :param immediate: optional boolean
+        :param immediate:  optional boolean
 
         The vendor_id and product_id together specify a unique USB
-        device. 
+        device. The immediate argument configures whether or not the
+        object will immediately update the physical device with the
+        object's in-memory representation of the command word.
 
-        ValueError is raised if vendor_id does not match known
-        Embrava IDs.
+        If immediate is False, the caller will need to set immediate
+        to True before updates to the device will occur.
         
-        ValueError is raised if the device specified by
-        vendor_id:product_id is already open.
+        The following exceptions are raised:
+
+        - BlyncLightUnknownDevice is raised if vendor_id does not
+          match known Embrava vendor indentifiers.
+        
+        - BlyncLightInUse is raised if the light specified by
+          vendor_id:product_id has already been opened.
+        
+        - BlyncLightNotFound is raised if the light specified by
+          vendor_id:product_id does not exist.
 
         """
         if vendor_id not in EMBRAVA_VENDOR_IDS:
-            raise ValueError(f"unknown vendor id 0x{vendor_id:04}")
+            raise BlyncLightUnknownDevice(f"unknown vendor id 0x{vendor_id:04}")
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.reset(flush=False)
         self.immediate = immediate
 
     def reset(self, flush=True):
-        """Returns the command word to a known state
-        and writes the command to the device if flush
-        is True.
+        """Returns the command word to it's default state and writes the command to
+        the device if flush is True.
 
         On return the immediate attribute is zero.
 
         :param flush: optional boolean
+        :return: None
+
         """
         self.immediate = 0
-        for name, typ, sz in self._fields_:
+        for name in self.commands:
             setattr(self, name, 0)
         self.off = 1
-        self.eob = 0xFFFF
         if flush:
             self.device.write(self.bytes)
 
@@ -178,9 +272,9 @@ class BlyncLight(ctypes.Structure):
         return "\n".join(s)
 
     def __len__(self):
-        """The length of the command word in bytes (9).
+        """The length of the command word in bytes.
         """
-        return 9
+        return COMMAND_LENGTH
 
     def __del__(self):
         """Sets all light attributes to their default values
@@ -197,6 +291,15 @@ class BlyncLight(ctypes.Structure):
         immediate to 1 will flush the in-memory command word
         to the hardware.
         """
+
+        if name.startswith(('report', 'pad')):
+            super().__setattr__(name, PAD_VALUE)
+            return
+        
+        if name == 'eoc':
+            super().__setattr__(name, END_OF_COMMAND)
+            return
+            
         super().__setattr__(name, value)
         if name in self.commands and self.immediate:
             self.device.write(self.bytes)
@@ -210,7 +313,12 @@ class BlyncLight(ctypes.Structure):
             return self._device
         except AttributeError:
             pass
-        self._device = HidDevice(self.vendor_id, self.product_id)
+        try:
+            self._device = HidDevice(self.vendor_id, self.product_id)
+        except ValueError:
+            raise BlyncLightInUse(self.vendor_id, self.product_id)
+        except LookupError:
+            raise BlyncLightNotFound(self.vendor_id, self.product_id)
         return self._device
 
     @property
@@ -250,13 +358,12 @@ class BlyncLight(ctypes.Structure):
     def color(self):
         """A tuple of (red, blue, green) hexadecimal values.
 
-        A tuple or a 24-bit hex number can be used to set all
-        three colors at once. 
+        A three-tuple of 8-bit integers or 24-bit hex number can be
+        used to set all three colors at once.
 
-        e.g.
-        >> r,b,g = light.colors
-        >> light.colors = (0xaa, 0xbb, 0xcc)
-        >> light.colors = 0xaabbcc
+        > red, blue, green = light.colors
+        > light.colors = (0xRR, 0xBB, 0xGG)
+        > light.colors = 0xRRBBGG
 
         """
         return (self.red, self.blue, self.green)
@@ -275,7 +382,7 @@ class BlyncLight(ctypes.Structure):
 
     @property
     def on(self):
-        """Inverse logic accessor for 'off' attribute.
+        """Inverse logic setter/getter for 'off' attribute.
         """
         return 0 if self.off else 1
 
@@ -285,7 +392,7 @@ class BlyncLight(ctypes.Structure):
 
     @property
     def bright(self):
-        """Inverse logic accessor for 'dim' attribute.
+        """Inverse logic setter/getter for 'dim' attribute.
         """
         return 0 if self.dim else 1
 
