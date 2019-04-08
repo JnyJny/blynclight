@@ -52,7 +52,7 @@ def light():
     # pass in immediate=False to suppress writes to the device
     # until the device attribute has been successfully updated
     # with the mock object.
-    #
+
     b = BlyncLight(EMBRAVA_VENDOR_IDS[0], 0xFFFF, immediate=False)
     b._device = MockDevice()
     return b
@@ -223,45 +223,46 @@ def test_blynclight_unknown_device():
 
 
 def test_blynclight_vendor(light):
-    """Double check that the BlycnLight's vendor_id property is
-    in the list of the known Embrava vendor identifiers.
-    
-    :param light: BlyncLight fixture
+    """:param light: BlyncLight fixture
+
+    Double check that the BlycnLight's vendor_id property is
+    in the list of the known Embrava vendor identifiers. This
+    check occurs in the BlyncLight __init__ so maybe not
+    needed here.
     """
     assert light.vendor_id in EMBRAVA_VENDOR_IDS
 
 
 def test_blynclight_product_id(light):
-    """Double checks that the BlyncLight's product_id property
-    is non-zero (it's a hidapi wildcard value).
+    """:param light: BlyncLight fixture
 
-    :param light: BlyncLight fixture
+    Double check that the BlyncLight's product_id property is
+    non-zero (it's a hidapi wildcard value).
     """
     assert light.product_id != 0
 
 
 def test_blynclight_device(light):
-    """Check to make sure the BlyncLight's device property
-    is not None.
+    """:param light: BlyncLight fixture
 
-    :param light: BlyncLight fixture
+    Check to make sure the BlyncLight's device property is not None.
     """
     assert light.device
 
 
 def test_blynclight_length(light):
-    """Check to make sure the BlyncLight's length is COMMAND_LENGTH.
-
-    :param light: BlyncLight fixture
+    """:param light: BlyncLight fixture
+    
+    Check to make sure the BlyncLight's length is COMMAND_LENGTH.
     """
     assert len(light) == COMMAND_LENGTH
 
 
 def test_blynclight_command_property(light):
-    """Check to make sure the BlyncLight command property is a
+    """:param light: BlyncLight fixture
+
+    Check to make sure the BlyncLight command property is a
     list of strings.
-    
-    :param light: BlyncLight fixture
     """
     assert isinstance(light.commands, list)
     for command in light.commands:
@@ -269,14 +270,14 @@ def test_blynclight_command_property(light):
 
 
 def test_bitfield(light, a_field):
-    """Tests a BlyncLight field by setting the light's
+    """:param light: BlyncLight fixture
+    :param a_field: FieldToTest fixture
+
+    Tests a BlyncLight field by setting the light's
     field to value and then comparing the attribute's
     value to the expected value. All the fields specified in
     the a_field fixture are tested, regardless of whether the
     field is a valid 'command' or a padding or control field.
-
-    :param light: BlyncLight fixture
-    :param a_field: FieldToTest fixture
     """
     setattr(light, a_field.name, a_field.value)
     value = getattr(light, a_field.name)
@@ -284,7 +285,9 @@ def test_bitfield(light, a_field):
 
 
 def test_color_property_tuple(light):
-    """The BlyncLight color property is a synthetic property that
+    """:param light: BlyncLight fixture
+
+    The BlyncLight color property is a synthetic property that
     suspends device updates while the red, blue and green fields
     are updated. Once the red, blue, and green fields are set
     in-memory, updates to the hardware are re-enabled.
@@ -297,9 +300,6 @@ def test_color_property_tuple(light):
     The color property getter is compared to the three-tuple and
     the individual color fields are checked to make sure they
     were updated with expected values.
-
-    :param light: BlyncLight fixture
-
     """
     light.color = (0xAA, 0xBB, 0xCC)
     assert light.color == (0xAA, 0xBB, 0xCC)
@@ -309,7 +309,9 @@ def test_color_property_tuple(light):
 
 
 def test_color_property_hex(light):
-    """The BlyncLight color property is a synthetic property that
+    """:param light: BlyncLight fixture
+
+    The BlyncLight color property is a synthetic property that
     suspends device updates while the red, blue and green fields
     are updating. Once the red, blue, and green fields are set
     in-memory, updates to the hardware are re-enabled.
@@ -321,9 +323,6 @@ def test_color_property_hex(light):
     The color property getter is compared to the expected three-tuple
     and the individual color fields are checked to make sure they were
     updated with expected values.
-
-    :param light: BlyncLight fixture
-
     """
     light.color = 0x112233
     assert light.color == (0x11, 0x22, 0x33)
@@ -333,7 +332,9 @@ def test_color_property_hex(light):
 
 
 def test_updates_paused_context_manager(light):
-    """By default, a BlyncLight object writes it's in-memory
+    """:param light: BlyncLight fixture
+
+    By default, a BlyncLight object writes it's in-memory
     representation of the command word to the device whenever
     a field is written. The updates_paused() method is a
     context manager that will suspend updates to the device
@@ -343,9 +344,6 @@ def test_updates_paused_context_manager(light):
     starts a context manager, checks that immediate is zero
     and then checks that immediate is restored to it's
     original value when the context manager exits.
-
-    :param light: BlyncLight fixture
-
     """
     for value in [True, False]:
         light.immediate = value
@@ -356,7 +354,9 @@ def test_updates_paused_context_manager(light):
 
 
 def test_on_property(light):
-    """The BlyncLight 'on' property is a synthetic negative logic accessor
+    """:param light: BlyncLight fixture
+
+    The BlyncLight 'on' property is a synthetic negative logic accessor
     for the 'off' field in the command word. It made more sense to me
     to turn a light on with:
 
@@ -368,9 +368,6 @@ def test_on_property(light):
 
     Those statements are equivalent, the test makes sure that manipulating
     'on' sets 'off' appropriately and vice-versa
-
-    :param light: BlyncLight fixture
-
     """
     for value in [False, True]:
         light.off = value
@@ -383,7 +380,9 @@ def test_on_property(light):
 
 
 def test_bright_property(light):
-    """The BlyncLight 'bright' property is a synthetic opposite logic
+    """:param light: Blynclight fixture
+
+    The BlyncLight 'bright' property is a synthetic opposite logic
     accessor for the 'dim' field in the command word. It made more sense
     to me to make the light bright with:
 
@@ -395,7 +394,6 @@ def test_bright_property(light):
     
     Those statements are equivalent, the test makes sure that manipulating
     'bright' sets 'dim' appropriately and vice-versa.
-
     """
 
     for value in [False, True]:
@@ -409,13 +407,12 @@ def test_bright_property(light):
 
 
 def test_open_same_device(number_of_lights):
-    """Two BlyncLight objects cannot open the same device,
-    so here we test that BlyncLightInUse is raised when that
-    is attempted. This only works if there are physical lights
-    to test against, which is tested with the number of lights
-    fixture.
+    """:param number_of_lights: integer fixture
 
-    :param number_of_lights: integer fixture
+    Two BlyncLight objects cannot open the same device, so here we
+    test that BlyncLightInUse is raised when that is attempted. This
+    only works if there are physical lights to test against, which is
+    controlled with the number_of_lights fixture.
     """
 
     if number_of_lights <= 0:
@@ -434,13 +431,13 @@ def test_open_same_device(number_of_lights):
 
 
 def test_reseting_light(light, reset_field):
-    """Dirties up the light and then resets() it to a known state.
-
-    Each in the light is field is altered, reset() is called and
-    the reset field value compared to the expected value.
-
-    :param light: BlyncLight fixture
+    """:param light: BlyncLight fixture
     :param reset_field: FieldToTest fixture
+
+    Dirties up the light and then resets() it to a known state.
+
+    Each time a field in the light is altered, reset() is called and
+    the reset field value compared to the expected value.
     """
 
     setattr(light, reset_field.name, reset_field.value)
