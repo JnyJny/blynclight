@@ -3,14 +3,17 @@
 from ctypes import Structure, c_uint64
 from contextlib import contextmanager
 from .hid import HidDevice
-from .constants import (EMBRAVA_VENDOR_IDS,
-                        END_OF_COMMAND,
-                        COMMAND_LENGTH,
-                        PAD_VALUE,)
-from .exceptions import (BlyncLightNotFound,
-                         BlyncLightUnknownDevice,
-                         BlyncLightInUse,)
-
+from .constants import (
+    EMBRAVA_VENDOR_IDS,
+    END_OF_COMMAND,
+    COMMAND_LENGTH,
+    PAD_VALUE,
+)
+from .exceptions import (
+    BlyncLightNotFound,
+    BlyncLightUnknownDevice,
+    BlyncLightInUse,
+)
 
 
 class BlyncLight(Structure):
@@ -146,7 +149,7 @@ class BlyncLight(Structure):
     #     to use those devices later on. Otherwise we need to
     #     start caching and managing open USB HID devices which
     #     is complex and error prone.
-    
+
     @classmethod
     def available_lights(cls):
         """Returns a list of dictonary entries, each entry describing an
@@ -157,10 +160,9 @@ class BlyncLight(Structure):
 
         """
 
-        is_blynclight = lambda d: d.get('vendor_id') in EMBRAVA_VENDOR_IDS
+        is_blynclight = lambda d: d.get("vendor_id") in EMBRAVA_VENDOR_IDS
 
         return [info for info in HidDevice.enumerate() if is_blynclight(info)]
-
 
     @classmethod
     def get_light(cls, light_id=0):
@@ -176,43 +178,41 @@ class BlyncLight(Structure):
         try:
             return cls.from_dict(cls.available_lights()[light_id])
         except IndexError:
-            raise BlyncLightNotFound(f'Light for {light_id} not found.')
+            raise BlyncLightNotFound(f"Light for {light_id} not found.")
 
     @classmethod
     def from_dict(cls, info):
-        '''Returns a BlyncLight configured with the contents of the supplied
+        """Returns a BlyncLight configured with the contents of the supplied
         dictionary 'info'. The keys 'vendor_id' and 'product_id' are required.
 
         - BlyncLightInUse raised if specified light is already open.
 
         :param info: dictionary
         :return: BlyncLight
-        '''
-        
-        return cls(info.get('vendor_id'), info.get('product_id'))
+        """
 
+        return cls(info.get("vendor_id"), info.get("product_id"))
 
     @classmethod
     def report_available(cls):
-        '''Prints an ugly report to stdout about each available BlyncLight
+        """Prints an ugly report to stdout about each available BlyncLight
         device. Report sort of lies. A light may be in use and so not really
         "available". I'll fix it later.
-        '''
+        """
         lights = cls.available_lights()
-        print('Number of available lights:', len(lights))
+        print("Number of available lights:", len(lights))
         for i, info in enumerate(lights):
-            print("{:>20s}:ID:VALUE".format('KEY'))
-            for k,v in info.items():
+            print("{:>20s}:ID:VALUE".format("KEY"))
+            for k, v in info.items():
                 if len(str(v)) == 0:
                     continue
                 if isinstance(v, int):
                     v = hex(v)
                 if isinstance(v, bytes):
-                    v = v.decode('utf-8')
-                print(f'{k:>20s}:{i:02d}:{v:s}')
-            print()    
+                    v = v.decode("utf-8")
+                print(f"{k:>20s}:{i:02d}:{v:s}")
+            print()
 
-    
     def __init__(self, vendor_id, product_id, immediate=True):
         """Initialize a BlyncLight for use.
 
@@ -241,7 +241,9 @@ class BlyncLight(Structure):
 
         """
         if vendor_id not in EMBRAVA_VENDOR_IDS:
-            raise BlyncLightUnknownDevice(f"unknown vendor id 0x{vendor_id:04}")
+            raise BlyncLightUnknownDevice(
+                f"unknown vendor id 0x{vendor_id:04}"
+            )
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.reset(flush=False)
@@ -292,14 +294,14 @@ class BlyncLight(Structure):
         to the hardware.
         """
 
-        if name.startswith(('report', 'pad')):
+        if name.startswith(("report", "pad")):
             super().__setattr__(name, PAD_VALUE)
             return
-        
-        if name == 'eoc':
+
+        if name == "eoc":
             super().__setattr__(name, END_OF_COMMAND)
             return
-            
+
         super().__setattr__(name, value)
         if name in self.commands and self.immediate:
             self.device.write(self.bytes)
