@@ -27,7 +27,7 @@ VERSION:
 	@echo $(VERSION) > $@
 
 black:
-	$(BLACK) -l 79 .
+	$(BLACK) -l 79 src tests contrib
 
 test: VERSION
 	$(PYTHON) $(SETUP_PY) test
