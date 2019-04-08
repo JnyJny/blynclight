@@ -197,7 +197,11 @@ class HidDevice:
         :param info: dictionary
         :return: hid.HidDevice
         """
-        return cls(info.get("vendor_id"), info.get("product_id"))
+
+        try:
+            return cls(info["vendor_id"], info["product_id"])
+        except KeyError:
+            raise LookupError("dictionary missing vendor_id or product_id key")
 
     def __init__(self, vendor_id, product_id, path=None):
         """
@@ -213,6 +217,7 @@ class HidDevice:
         self.path = path
         # XXX this a hack to keep from re-opening a USB device and
         #     inducing a crash in libhidapi.
+
         if self.identifier in self._opened:
             raise ValueError(f"{self.identifier} already in use")
         self._opened.add(self.identifier)
@@ -256,6 +261,7 @@ class HidDevice:
         )
         if not self._handle:
             raise LookupError(f"no such device: {self.identifier}")
+        self._opened.add(self.identifier)
         return self._handle
 
     def close(self):
