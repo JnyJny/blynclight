@@ -47,7 +47,7 @@ if __name__ == "__main__":
     colors = [rgb for rgb in Spectrum(steps=255)]
 
     try:
-        b = BlyncLight.available_lights()[args.light_id]
+        b = BlyncLight.get_light(args.light_id)
     except IndexError:
         print(f"light {args.light_id} unavailable")
         exit(-1)

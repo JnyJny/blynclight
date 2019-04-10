@@ -48,7 +48,7 @@ if __name__ == "__main__":
     colors.extend(c for c in reversed(colors))
 
     try:
-        b = BlyncLight.available_lights()[args.light_id]
+        b = BlyncLight.get_light(args.light_id)
     except IndexError:
         print(f"light {args.light_id} is unavailable")
 
