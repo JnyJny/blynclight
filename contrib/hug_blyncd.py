@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import hug
+
 from blynclight import BlyncLight
 
 
@@ -37,7 +38,10 @@ class BlyncDaemon(object):
             return self._lights
         except AttributeError:
             pass
-        self._lights = BlyncLight.available_lights()
+        self._lights = []
+        for dictionary in BlyncLight.available_lights():
+            light = BlyncLight.from_dict(dictionary)
+            self._lights.append(light)
         return self._lights
 
     @hug.object.get("/blynclight/status")
