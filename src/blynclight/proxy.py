@@ -39,18 +39,30 @@ class Proxy(object):
 
     @property
     def status(self, light_id=None):
-        """
+        """Returns a dictionary of BlyncLight status.
         """
         return self._call("status", light_id)
 
     def on(self, light_id):
+        """:param light_id: integer
+
+        Turns the light associated with light_id on.
+        """
         return self._call("on", light_id)
 
     def off(self, light_id):
+        """:param light_id: integer
+
+        Turns the light associated with light_id off.
+        """
         return self._call("off", light_id)
 
     def color(self, light_id, value):
-        """
+        """:param light_id: integer
+        :param value: color specifier ( tuple of ints or int )
+
+        Changes the color of the light associated with light_id.
+        
         """
         if isinstance(value, tuple):
             # convert tuple to string
