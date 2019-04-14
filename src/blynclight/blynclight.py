@@ -134,11 +134,11 @@ class BlyncLight(Structure):
         ("volume", c_uint64, 4),
         ("pad2", c_uint64, 3),
         ("mute", c_uint64, 1),
-        ("eoc", c_uint64, 16),
+        ("eoc", c_uint64, 8),
         # End of Command Word
         # - pad3 and immediate round out the
         #   length of _fields_ to 128 bits
-        ("pad3", c_uint64, 55),
+        ("pad3", c_uint64, 63),
         ("immediate", c_uint64, 1),
     ]
 
@@ -152,28 +152,33 @@ class BlyncLight(Structure):
 
     @classmethod
     def available_lights(cls):
-        """Returns a list of dictonary entries, each entry describing an
-        Embrava BlyncLight device. If no matching devices are found, an empty
-        list is returned.
+        """:return: list of dictionaries
 
-        :return: list of dictionaries
+        Returns a list of dictonary entries, each entry describing an
+        Embrava BlyncLight device. If no matching devices are found,
+        an empty list is returned.
+
+        Raises:
+
+        - KeyError if vendor_id key is missing in DeviceInfo dictionaries.
 
         """
 
-        is_blynclight = lambda d: d.get("vendor_id") in EMBRAVA_VENDOR_IDS
+        is_blynclight = lambda d: d["vendor_id"] in EMBRAVA_VENDOR_IDS
 
         return [info for info in HidDevice.enumerate() if is_blynclight(info)]
 
     @classmethod
     def get_light(cls, light_id=0):
-        """Returns a BlyncLight object accessed by index 'light_id'
-        into a list returned by available_lights().
+        """:param light_id: optional integer
+        :return: BlyncLight
+
+        Returns a BlyncLight object accessed by index 'light_id' into
+        a list returned by available_lights().
 
         - BlyncLightNotFound raised if light_id is not found.
         - BlyncLightInUse raised if BlyncLight has already been opened.
 
-        :param light_id: optional integer
-        :return: BlyncLight
         """
         try:
             return cls.from_dict(cls.available_lights()[light_id])
@@ -182,16 +187,19 @@ class BlyncLight(Structure):
 
     @classmethod
     def from_dict(cls, info):
-        """Returns a BlyncLight configured with the contents of the supplied
-        dictionary 'info'. The keys 'vendor_id' and 'product_id' are required.
+        """:param info: dictionary
+        :return: BlyncLight
+
+        Returns a BlyncLight configured with the contents of the
+        supplied dictionary 'info'. The keys 'vendor_id' and
+        'product_id' are required.
 
         - BlyncLightInUse raised if specified light is already open.
+        - KeyError if vendor_id or product_id is missing from the
+          input dictionary.
 
-        :param info: dictionary
-        :return: BlyncLight
         """
-
-        return cls(info.get("vendor_id"), info.get("product_id"))
+        return cls(info["vendor_id"], info["product_id"])
 
     @classmethod
     def report_available(cls):
@@ -214,11 +222,11 @@ class BlyncLight(Structure):
             print()
 
     def __init__(self, vendor_id, product_id, immediate=True):
-        """Initialize a BlyncLight for use.
-
-        :param vendor_id:  16-bit integer
+        """:param vendor_id:  16-bit integer
         :param product_id: 16-bit integer
         :param immediate:  optional boolean
+
+        Initialize a BlyncLight for use.
 
         The vendor_id and product_id together specify a unique USB
         device. The immediate argument configures whether or not the
@@ -250,17 +258,17 @@ class BlyncLight(Structure):
         self.immediate = immediate
 
     def reset(self, flush=True):
-        """Returns the command word to it's default state and writes the command to
-        the device if flush is True.
+        """:param flush: optional boolean
+        :return: None
+
+        Returns the command word to it's default state and writes the
+        command to the device if flush is True.
 
         On return the immediate attribute is zero.
 
-        :param flush: optional boolean
-        :return: None
-
         """
         self.immediate = 0
-        for name in self.commands:
+        for name, typ, sz in self._fields_:
             setattr(self, name, 0)
         self.off = 1
         if flush:
@@ -268,10 +276,21 @@ class BlyncLight(Structure):
 
     def __str__(self):
         s = [f"Device: {self.device.identifier}"]
-        for name in self.commands:
-            value = getattr(self, name)
+        for name, value in self.status.items():
             s.append(f"\t0x{value:04x} : {name}")
         return "\n".join(s)
+
+    @property
+    def status(self):
+        """A dictionary representation of the current light status.
+        The keys are the command field names and the values are the
+        integer contents of those fields.
+        """
+        retval = {}
+        for command in self.commands:
+            value = getattr(self, command)
+            retval.setdefault(command, value)
+        return retval
 
     def __len__(self):
         """The length of the command word in bytes.
@@ -304,7 +323,11 @@ class BlyncLight(Structure):
 
         super().__setattr__(name, value)
         if name in self.commands and self.immediate:
-            self.device.write(self.bytes)
+            n = self.device.write(self.bytes)
+            if n != len(self.bytes):
+                raise IOError(
+                    f"wrote {n} bytes, expected {len(self.bytes)} bytes"
+                )
 
     @property
     def device(self):
