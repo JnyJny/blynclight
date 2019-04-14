@@ -39,10 +39,6 @@ def light():
         pass
 
     class MockDevice:
-        @property
-        def handle(self):
-            return None
-
         def write(self, data):
             return COMMAND_LENGTH
 
@@ -446,3 +442,20 @@ def test_reseting_light(light, reset_field):
 
     value = getattr(light, reset_field.name)
     assert value == reset_field.expected
+
+
+def test_status_property(light):
+    """:param light: BlyncLight fixture
+    
+    Confirms that the BlyncLight property 'status' is a
+    dictionary, that keys of the dictionary are those
+    enumerated by the commands property and that the
+    values of the commands are integers.
+    """
+
+    status = light.status
+    assert isinstance(status, dict)
+    for command in light.commands:
+        assert command in status.keys()
+        value = status[command]
+        assert isinstance(value, int)
