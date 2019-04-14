@@ -287,15 +287,18 @@ class HidDevice:
         """
         return hidapi.hid_write(self.handle, data, len(data))
 
-    def read(self, data: bytes, timeout: int = None) -> int:
+    def read(self, nbytes: int, timeout: int = None) -> bytes:
         """Reads data from the device into the given bytes buffer.
 
-        :param data: bytes buffer
+        :param nbytes: integer
         :param timeout: optional timeout in milliseconds
-        :return: integer bytes read
+        :return: bytes read
         """
+
+        buf = (ctypes.c_ubyte * nbytes)()
+
         if timeout:
-            return hidapi.hid_read_timeout(
-                self.handle, data, len(data), timeout
-            )
-        return hidapi.hid_read(self.handle, data, len(data))
+            hidapi.hid_read_timeout(self.handle, buf, nbytes, timeout)
+        else:
+            hidapi.hid_read(self.handle, buf, nbytes)
+        return bytearray(buf)
