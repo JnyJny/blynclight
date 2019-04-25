@@ -51,7 +51,7 @@ Once installed, the BlyncLight is yours to command!
 
 	from blynclight import BlyncLight
 
-	light = BlyncLight.first_light()
+	light = BlyncLight.get_light()
 
 	red, blue, green = (255, 0, 0), (0, 255, 0), (0, 0, 255)
 
@@ -66,13 +66,20 @@ Once installed, the BlyncLight is yours to command!
 	light.on = False              # the light is off and blue
 
 
+
 Several command line interfaces are provided when blynclight is installed:
 
 - blync
-- fli
-- rainbow
-- throbber
+    Provides command-line access to all light asttributes.
 
+- fli
+    Flashes the light.. impressively.
+
+- rainbow
+    Smoothly transitions the color of the light in a rainbow pattern.
+
+- throbber
+    Menacingly ramps the color intensity and then recedes. Over and over again.
 
 .. |pypi| image:: https://img.shields.io/pypi/v/blynclight.svg?style=flat-square&label=version
     :target: https://pypi.org/pypi/blynclight
