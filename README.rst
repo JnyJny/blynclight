@@ -32,7 +32,7 @@ Install
 	  $ git clone https://github.com/JnyJny/blynclight.git
 	  $ cd blynclight; pip3 install -e .
 
-  
+
 Uninstall
 ---------
 
@@ -40,7 +40,7 @@ Uninstall
 
 	  $ pip3 uninstall blynclight
 
-	  
+
 
 Usage
 -----
@@ -54,7 +54,7 @@ Once installed, the BlyncLight is yours to command!
 	light = BlyncLight.first_light()
 
 	red, blue, green = (255, 0, 0), (0, 255, 0), (0, 0, 255)
-	
+
 	light.color = green           # the light is off and green
 	light.on = True               # the light is on and green
 	light.flash = True            # the light is on, flashing and green
@@ -64,8 +64,14 @@ Once installed, the BlyncLight is yours to command!
 	light.color = blue            # the light is on, dim and blue
 	light.bright = True           # the light is on and blue
 	light.on = False              # the light is off and blue
-	
-More examples can be found in the contrib directory.
+
+
+Several command line interfaces are provided when blynclight is installed:
+
+- blync
+- fli
+- rainbow
+- throbber
 
 
 .. |pypi| image:: https://img.shields.io/pypi/v/blynclight.svg?style=flat-square&label=version
@@ -74,14 +80,12 @@ More examples can be found in the contrib directory.
 
 .. |python| image:: https://img.shields.io/pypi/pyversions/blynclight.svg?style=flat-square
    :target: https://pypi.org/project/blynclight/
-   :alt: Python Versions	  
+   :alt: Python Versions
 
 .. |license| image:: https://img.shields.io/badge/license-apache-blue.svg?style=flat-square
     :target: https://github.com/erikoshaughnessy/blynclight/blob/master/LICENSE
-    :alt: Apache license version 2.0  
+    :alt: Apache license version 2.0
 
 .. _Embrava: https://embrava.com
 
 .. _hidapi: https://github.com/signal11/hidapi
-
-
