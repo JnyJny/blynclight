@@ -70,7 +70,7 @@ Once installed, the BlyncLight is yours to command!
 Several command line interfaces are provided when blynclight is installed:
 
 - blync
-    Provides command-line access to all light asttributes.
+    Provides command-line access to all light attributes.
 
 - fli
     Flashes the light.. impressively.
