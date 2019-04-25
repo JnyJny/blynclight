@@ -3,17 +3,8 @@
 from ctypes import Structure, c_uint64
 from contextlib import contextmanager
 from .hid import HidDevice
-from .constants import (
-    EMBRAVA_VENDOR_IDS,
-    END_OF_COMMAND,
-    COMMAND_LENGTH,
-    PAD_VALUE,
-)
-from .exceptions import (
-    BlyncLightNotFound,
-    BlyncLightUnknownDevice,
-    BlyncLightInUse,
-)
+from .constants import EMBRAVA_VENDOR_IDS, END_OF_COMMAND, COMMAND_LENGTH, PAD_VALUE
+from .exceptions import BlyncLightNotFound, BlyncLightUnknownDevice, BlyncLightInUse
 
 
 class BlyncLight(Structure):
@@ -52,10 +43,10 @@ class BlyncLight(Structure):
 
     Additionally, any updates to the bit fields in the ByncLight class
     will be immediately written to the hardware device by default.
-    
+
     Finally, when a BlyncLight object is deallocated it will attempt
     to return the light to a known quiescent state before releasing
-    the device. 
+    the device.
 
     Callers can defer hardware updates by setting the 'immediate'
     attribute to False. Any changes to command fields will not be
@@ -103,10 +94,10 @@ class BlyncLight(Structure):
     green  : 8     Green component varies between 0-255
     off    : 1     0==on     1==off
     dim    : 1     0==bright 1==dim
-    flash  : 1     0==steady 1==flash  
+    flash  : 1     0==steady 1==flash
     speed  : 3     0==off 1==low 2==medium 4==fast
     pad    : 2
-    mute   : 1     0==unmute 1==mute 
+    mute   : 1     0==unmute 1==mute
     music  : 4     select a built-in musical tune
     play   : 1     0==stop 1==play
     repeat : 1     0==no repeat 1==repeat
@@ -235,23 +226,21 @@ class BlyncLight(Structure):
 
         If immediate is False, the caller will need to set immediate
         to True before updates to the device will occur.
-        
+
         The following exceptions are raised:
 
         - BlyncLightUnknownDevice is raised if vendor_id does not
           match known Embrava vendor indentifiers.
-        
+
         - BlyncLightInUse is raised if the light specified by
           vendor_id:product_id has already been opened.
-        
+
         - BlyncLightNotFound is raised if the light specified by
           vendor_id:product_id does not exist.
 
         """
         if vendor_id not in EMBRAVA_VENDOR_IDS:
-            raise BlyncLightUnknownDevice(
-                f"unknown vendor id 0x{vendor_id:04}"
-            )
+            raise BlyncLightUnknownDevice(f"unknown vendor id 0x{vendor_id:04}")
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.reset(flush=False)
@@ -325,9 +314,7 @@ class BlyncLight(Structure):
         if name in self.commands and self.immediate:
             n = self.device.write(self.bytes)
             if n != len(self.bytes):
-                raise IOError(
-                    f"wrote {n} bytes, expected {len(self.bytes)} bytes"
-                )
+                raise IOError(f"wrote {n} bytes, expected {len(self.bytes)} bytes")
 
     @property
     def device(self):

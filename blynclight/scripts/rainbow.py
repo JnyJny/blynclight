@@ -3,10 +3,10 @@
 """BlyncLights Love Rainbows!
 """
 
+import click
 import math
-from blynclight import BlyncLight
+from blynclight import BlyncLight, BlyncLightNotFound
 from time import sleep
-from argparse import ArgumentParser
 from itertools import cycle
 
 
@@ -32,27 +32,23 @@ def Spectrum(steps=64, frequency=None, phase=None, center=128, width=127):
         yield (r, b, g)
 
 
-if __name__ == "__main__":
+@click.command()
+@click.option("-l", "--light-id", default=0)
+@click.option("-s", "--speed", default=1)
+def cli(light_id, speed):
+    """BlyncLights Love Rainbows!
+
     """
-    """
-
-    parser = ArgumentParser()
-
-    parser.add_argument("-l", "--light-id", type=int, default=0)
-
-    parser.add_argument("-s", "--speed", action="count", default=1)
-
-    args = parser.parse_args()
 
     colors = [rgb for rgb in Spectrum(steps=255)]
 
     try:
-        b = BlyncLight.get_light(args.light_id)
-    except IndexError:
-        print(f"light {args.light_id} unavailable")
+        b = BlyncLight.get_light(light_id)
+    except BlyncLightNotFound as error:
+        print(f"{error}")
         exit(-1)
 
-    interval = args.speed * 0.1
+    interval = speed * 0.1
 
     b.on = True
     try:
@@ -61,4 +57,3 @@ if __name__ == "__main__":
             sleep(interval)
     except KeyboardInterrupt:
         pass
-    b.on = False

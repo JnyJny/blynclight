@@ -3,7 +3,7 @@
 """Flash Lights Impressively
 """
 
-from blynclight import BlyncLight
+from blynclight import BlyncLight, BlyncLightNotFound
 from itertools import cycle
 from collections import deque
 from time import sleep
@@ -24,25 +24,18 @@ def rotatable_color(intensity: str):
 @click.option(
     "-i", "--interval", default=0.1, help="Float interval in seconds to flash."
 )
+@click.option("-c", "--count", default=-1, help="Integer count to flash impressively.")
+@click.option("-I", "--intensity", default="0xff", help="8-bit color intensity.")
 @click.option(
-    "-c", "--count", default=-1, help="Integer count to flash impressively."
+    "-a", "--available", is_flag=True, help="List available BlyncLights and exit."
 )
-@click.option(
-    "-I", "--intensity", default="0xff", help="8-bit color intensity."
-)
-@click.option(
-    "-a",
-    "--available",
-    is_flag=True,
-    help="List available BlyncLights and exit.",
-)
-def flash_light_impressively(light_id, interval, count, intensity, available):
+def cli(light_id, interval, count, intensity, available):
     """FLI - Flash Light Impressively
 
     Cycles the light identified by light_id thru red, green and blue
     with the given intensity count times, pausing for interval
     seconds. It can be stupid annoying. Apologize to your cow-orkers
-    for me.
+    for me (not a typo).
 
     """
 
@@ -52,7 +45,8 @@ def flash_light_impressively(light_id, interval, count, intensity, available):
 
     try:
         light = BlyncLight.get_light(light_id)
-    except Exception as e:
+    except BlyncLightNotFound as not_found:
+        print(not_found)
         return
 
     light.on = 1
@@ -67,8 +61,3 @@ def flash_light_impressively(light_id, interval, count, intensity, available):
             sleep(interval)
     except KeyboardInterrupt:
         pass
-
-
-if __name__ == "__main__":
-
-    flash_light_impressively()

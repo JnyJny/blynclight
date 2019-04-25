@@ -62,7 +62,7 @@ class Proxy(object):
         :param value: color specifier ( tuple of ints or int )
 
         Changes the color of the light associated with light_id.
-        
+
         """
         if isinstance(value, tuple):
             # convert tuple to string

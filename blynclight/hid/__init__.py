@@ -88,12 +88,7 @@ class _DeviceHandle(ctypes.Structure):
     pass
 
 
-_hidapi_libraries = [
-    "hidapi",
-    "hidapi-hidraw",
-    "hidapi-libusb",
-    "hidapi-iohidmanager",
-]
+_hidapi_libraries = ["hidapi", "hidapi-hidraw", "hidapi-libusb", "hidapi-iohidmanager"]
 
 for stem in _hidapi_libraries:
     fullname = ctypes.util.find_library(stem)
@@ -104,11 +99,7 @@ else:
     raise ImportError("failed to locate hidapi shared object")
 
 _function_signatures = [
-    (
-        "hid_enumerate",
-        [ctypes.c_ushort, ctypes.c_ushort],
-        ctypes.POINTER(_DeviceInfo),
-    ),
+    ("hid_enumerate", [ctypes.c_ushort, ctypes.c_ushort], ctypes.POINTER(_DeviceInfo)),
     ("hid_free_enumeration", [ctypes.POINTER(_DeviceInfo)], None),
     (
         "hid_open",
@@ -119,20 +110,12 @@ _function_signatures = [
     ("hid_close", [ctypes.POINTER(_DeviceHandle)], None),
     (
         "hid_write",
-        [
-            ctypes.POINTER(_DeviceHandle),
-            ctypes.POINTER(ctypes.c_byte),
-            ctypes.c_size_t,
-        ],
+        [ctypes.POINTER(_DeviceHandle), ctypes.POINTER(ctypes.c_byte), ctypes.c_size_t],
         ctypes.c_int,
     ),
     (
         "hid_read",
-        [
-            ctypes.POINTER(_DeviceHandle),
-            ctypes.POINTER(ctypes.c_byte),
-            ctypes.c_size_t,
-        ],
+        [ctypes.POINTER(_DeviceHandle), ctypes.POINTER(ctypes.c_byte), ctypes.c_size_t],
         ctypes.c_int,
     ),
     (
@@ -158,7 +141,7 @@ atexit.register(hidapi.hid_exit)
 
 class HidDevice:
     """A USB Human Input Device (HID) Device
-    
+
     Provides read and write access to devices that adhere to the USB
     HID protocol. The HidDevice.enumerate class method can be used to
     discover currently attached devices.
@@ -256,9 +239,7 @@ class HidDevice:
             return self._handle
         except AttributeError:
             pass
-        self._handle = hidapi.hid_open(
-            self.vendor_id, self.product_id, self.path
-        )
+        self._handle = hidapi.hid_open(self.vendor_id, self.product_id, self.path)
         if not self._handle:
             raise LookupError(f"no such device: {self.identifier}")
         self._opened.add(self.identifier)

@@ -35,11 +35,7 @@ from .blynclight import BlyncLight
 
 from .constants import FlashSpeed, MusicSelections, MusicVolume
 
-from .exceptions import (
-    BlyncLightNotFound,
-    BlyncLightUnknownDevice,
-    BlyncLightInUse,
-)
+from .exceptions import BlyncLightNotFound, BlyncLightUnknownDevice, BlyncLightInUse
 
 from .proxy import Proxy as BlyncLightProxy
 

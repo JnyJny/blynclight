@@ -16,35 +16,17 @@ from pprint import pprint
 @click.option("--flash/--no-flash", default=False)
 @click.option("-s", "--speed", default=0, help="0, 1, 2, 4")
 @click.option(
-    "-v",
-    "--verbose",
-    is_flag=True,
-    default=False,
-    help="Prints the light status.",
+    "-v", "--verbose", is_flag=True, default=False, help="Prints the light status."
 )
 @click.option("-d", "--duration", default=-1)
 @click.option(
-    "-a",
-    "--available",
-    is_flag=True,
-    default=False,
-    help="Show available lights.",
+    "-a", "--available", is_flag=True, default=False, help="Show available lights."
 )
 def cli(
-    light_id,
-    red,
-    blue,
-    green,
-    off,
-    bright,
-    flash,
-    speed,
-    verbose,
-    duration,
-    available,
+    light_id, red, blue, green, off, bright, flash, speed, verbose, duration, available
 ):
     """Initialize the state of a connected BlyncLight and
-    activate the light for 'duration' seconds. 
+    activate the light for 'duration' seconds.
     """
 
     if available:
