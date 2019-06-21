@@ -25,13 +25,24 @@ Install
 
 	  $ pip3 install blynclight
 
-2. Clone the repo
+2. Clone the Repository
 
 .. code:: bash
 
 	  $ git clone https://github.com/JnyJny/blynclight.git
 	  $ cd blynclight; pip3 install -e .
 
+Development
+-----------
+
+.. code:: bash
+
+	  $ pip install poetry
+	  $ git clone https://github.com/JnyJny/blynclight.git
+	  $ cd blynclight
+	  $ poetry shell
+	  $ ..
+	  
 
 Uninstall
 ---------
@@ -64,7 +75,6 @@ Once installed, the BlyncLight is yours to command!
 	light.color = blue            # the light is on, dim and blue
 	light.bright = True           # the light is on and blue
 	light.on = False              # the light is off and blue
-
 
 
 Several command line interfaces are provided when blynclight is installed:
