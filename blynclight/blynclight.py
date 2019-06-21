@@ -125,11 +125,11 @@ class BlyncLight(Structure):
         ("volume", c_uint64, 4),
         ("pad2", c_uint64, 3),
         ("mute", c_uint64, 1),
-        ("eoc", c_uint64, 8),
+        ("eoc", c_uint64, 16),
         # End of Command Word
         # - pad3 and immediate round out the
         #   length of _fields_ to 128 bits
-        ("pad3", c_uint64, 63),
+        ("pad3", c_uint64, 55),
         ("immediate", c_uint64, 1),
     ]
 
