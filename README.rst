@@ -5,7 +5,8 @@ Embrava BlyncLight
 
 **blynclight** is a Python 3 package that provides bindings for the
 `Embrava`_ BlyncLight family of products. These bindings have been
-tested on MacOS and Linux using an Embrava V30 USB connected light.
+tested on MacOS and Linux using Embrava models V30, and BLYNCUSB40S-181
+USB connected lights.
 
 
 Install
