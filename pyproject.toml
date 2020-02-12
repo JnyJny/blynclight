@@ -22,15 +22,16 @@ classifiers = [
 
 [tool.poetry.scripts]
 
-rainbow = "blynclight.scripts.rainbow:cli"
-throbber = "blynclight.scripts.throbber:cli"
-fli = "blynclight.scripts.fli:cli"
-blync = "blynclight.scripts.blync:cli"
+rainbow = "blynclight.__main__:rainbow_cli"
+throbber = "blynclight.__main__:throbber_cli"
+fli = "blynclight.__main__:fli_cli"
+blync = "blynclight.__main__:blync_cli"
 
 [tool.poetry.dependencies]
 python = "^3.6"
 click = "^7.0"
 requests = "^2.21"
+typer = "^0.0.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4"

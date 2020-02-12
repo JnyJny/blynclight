@@ -320,6 +320,22 @@ version = "0.10.0"
 
 [[package]]
 category = "main"
+description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
+name = "typer"
+optional = false
+python-versions = ">=3.6"
+version = "0.0.8"
+
+[package.dependencies]
+click = ">=7.0.0,<8.0.0"
+
+[package.extras]
+all = ["colorama", "click-completion"]
+doc = ["mkdocs", "mkdocs-material", "markdown-include"]
+test = ["click-completion", "pytest (>=4.4.0)", "pytest-cov", "coverage", "pytest-xdist", "pytest-sugar", "mypy", "black", "isort"]
+
+[[package]]
+category = "main"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 name = "urllib3"
 optional = false
@@ -379,7 +395,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools"]
 
 [metadata]
-content-hash = "f6750e916738640c6394c8a7f9aac62d22cbad52b935b1c465e4611f90ec83f4"
+content-hash = "572a9223bc0b51baf06d7a7564d155c749f7698cf1e3f9894a666a363ed2014b"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -502,6 +518,10 @@ toml = [
     {file = "toml-0.10.0-py2.7.egg", hash = "sha256:f1db651f9657708513243e61e6cc67d101a39bad662eaa9b5546f789338e07a3"},
     {file = "toml-0.10.0-py2.py3-none-any.whl", hash = "sha256:235682dd292d5899d361a811df37e04a8828a5b1da3115886b73cf81ebc9100e"},
     {file = "toml-0.10.0.tar.gz", hash = "sha256:229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c"},
+]
+typer = [
+    {file = "typer-0.0.8-py3-none-any.whl", hash = "sha256:ada3c007a2d21cd0006a459670fbc76dde8a3bea10298167f41723f356115a6b"},
+    {file = "typer-0.0.8.tar.gz", hash = "sha256:50cbb5659cd359eeae807d970fcb898589529d440c70af126c6ea8425443387d"},
 ]
 urllib3 = [
     {file = "urllib3-1.25.8-py2.py3-none-any.whl", hash = "sha256:2f3db8b19923a873b3e5256dc9c2dedfa883e33d87c690d9c7913e1f40673cdc"},
