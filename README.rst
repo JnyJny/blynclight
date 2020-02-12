@@ -24,14 +24,18 @@ Install
 
 .. code:: bash
 
-	  $ pip3 install blynclight
+	  $ python3 -m pip install blynclight
+	  $ python3 -m pip install git+https://github.com/JnyJny/blynclight.git
 
-2. Clone the Repository
+2. Install the Cloned Repository
 
 .. code:: bash
 
 	  $ git clone https://github.com/JnyJny/blynclight.git
-	  $ cd blynclight; pip3 install -e .
+	  $ cd blynclight
+	  $ python3 -m pip install .
+	  
+
 
 Development
 -----------
@@ -50,7 +54,7 @@ Uninstall
 
 .. code:: bash
 
-	  $ pip3 uninstall blynclight
+	  $ python3 -m pip uninstall blynclight
 
 
 
