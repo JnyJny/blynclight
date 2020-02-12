@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "blynclight"
-version = "0.4.7"
+version = "0.4.8"
 description = "Python language bindings for Embrava BlyncLight devices."
 authors = ["Erik O'Shaughnessy <erik.oshaughnessy@gmail.com>"]
 license = "Apache-2.0"
@@ -35,7 +35,7 @@ requests = "^2.21"
 [tool.poetry.dev-dependencies]
 pytest = "^4.4"
 pre-commit = "^1.15"
-black = {version = "^18.3-alpha.0",allows-prereleases = true}
+black = "^18.3-alpha.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
