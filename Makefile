@@ -1,53 +1,61 @@
-# blynclight Makefile
-#
-VERSION=0.4.4
-PYTHON= python3
-SETUP_PY= setup.py
-TWINE= twine
-PYPI= testpypi
-TEMP= build dist
 
-.PHONY: VERSION black test sdist readme release upload
+TARGET=blynclight
 
-BLACK= black
+VERSION_FILE= $(TARGET)/__version__.py
+PYPROJECT= pyproject.toml
+
+.PHONY: $(VERSION_FILE) \
+        MAJOR MINOR PATCH \
+        major minor patch \
+        push publish\
+        patch_release minor_release major_release \
+        release clean
 
 all:
-	@echo "VERSION=$(VERSION)"
-	@echo "Targets:"
-	@echo " black   - run black code formatter"
-	@echo "	test    - run pytest"
-	@echo "	bdist   - binary distribution"
-	@echo "	sdist   - source distribution"
-	@echo "	readme  - README rst checking"
-	@echo "	release - VERSION=$(VERSION) readme bdist sdist"
-	@echo "	upload  - release and upload to PYPI=$(PYPI)"
-	@echo "	clean   - cleanup temporary files: TEMP=$(TEMP)"
+	@echo "major_release - push and publish a major release"
+	@echo "minor_release - push and publish a minor release"
+	@echo "patch_release - push and publish a patch release"
+	@echo "push          - pushes commits and tags to origin/master"
+	@echo "publish       - publish package to PyPI"
 
-VERSION:
-	@echo $(VERSION) > $@
+major: MAJOR update
 
-black:
-	$(BLACK) -l 79 src tests contrib
+minor: MINOR update
 
-test: VERSION
-	$(PYTHON) $(SETUP_PY) test
+patch: PATCH update
 
-bdist: VERSION
-	$(PYTHON) $(SETUP_PY) bdist_wheel
+MAJOR:
+	@poetry version major
 
-sdist: VERSION
-	$(PYTHON) $(SETUP_PY) sdist
+MINOR:
+	@poetry version minor
 
-readme: VERSION README.rst
-	$(PYTHON) $(SETUP_PY) check -r -s
-
-release: clean VERSION readme bdist sdist
+PATCH:
+	@poetry version patch
 
 
-upload: release 
-	$(TWINE) upload --repository ${PYPI} dist/*
+update: $(VERSION_FILE)
+	@git add $(PYPROJECT) $(VERSION_FILE)
+	@awk '{print $$3}' $(VERSION_FILE) | xargs git commit -m
+	@awk '{print $$3}' $(VERSION_FILE) | xargs git tag
+
+$(VERSION_FILE):
+	@awk '/^version/ {print $$0}' $(PYPROJECT) | sed "s/version/__version__/" > $@
+
+push:
+	@git push --tags origin master
+
+publish:
+	@poetry build
+	@poetry publish
+
+patch_release: patch push publish
+
+major_release: major push publish
+
+minor_release: minor push publish
+
+release: patch_release
 
 clean:
-	-@$(PYTHON) $(SETUP_PY) clean >& /dev/null
-	@$(RM) -rf $(TEMP) *~ *.egg-info
-
+	@echo Nothing to cleanup
