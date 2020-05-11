@@ -209,7 +209,7 @@ class BlyncLight(Structure):
                     v = hex(v)
                 if isinstance(v, bytes):
                     v = v.decode("utf-8")
-                print(f"{k:>20s}:{i:02d}:{v:s}")
+                print(f"{k:>20s}:{i:02d}:{v}")
             print()
 
     def __init__(self, vendor_id, product_id, immediate=True):
