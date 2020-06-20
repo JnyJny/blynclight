@@ -186,7 +186,7 @@ class HidDevice:
         except KeyError:
             raise LookupError("dictionary missing vendor_id or product_id key")
 
-    def __init__(self, vendor_id, product_id, path=None):
+    def __init__(self, vendor_id: int, product_id: int, path: str = None):
         """
         :param vendor_id: 16-bit integer quantity
         :param product_id: 16-bit integer quantity
@@ -239,10 +239,14 @@ class HidDevice:
             return self._handle
         except AttributeError:
             pass
-        self._handle = hidapi.hid_open(self.vendor_id, self.product_id, self.path)
+
+        self._handle = hidapi.hid_open(self.vendor_id, self.product_id, None)
+
         if not self._handle:
             raise LookupError(f"no such device: {self.identifier}")
+
         self._opened.add(self.identifier)
+
         return self._handle
 
     def close(self):
