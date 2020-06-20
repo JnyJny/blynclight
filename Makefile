@@ -4,7 +4,7 @@ TARGET=blynclight
 VERSION_FILE= $(TARGET)/__version__.py
 PYPROJECT= pyproject.toml
 
-.PHONY: $(VERSION_FILE) \
+.PHONY: $(VERSION_FILE) README.md \
         MAJOR MINOR PATCH \
         major minor patch \
         push publish\
@@ -35,7 +35,7 @@ PATCH:
 
 
 README.md:
-	typer $(TARGET).__main__ utils docs --name $(TARGET) --output $@
+	typer $(TARGET).__main__ utils docs --name blync --output $@
 	sed -i '' -e  "s///g" $@
 
 

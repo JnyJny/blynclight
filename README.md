@@ -1,4 +1,4 @@
-# `blynclight`
+# `blync`
 
 Control your Embrava BlyncLight from the command-line!
 
@@ -39,7 +39,7 @@ $ blync rainbow
 **Usage**:
 
 ```console
-$ blynclight [OPTIONS] COMMAND [ARGS]...
+$ blync [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Options**:
@@ -70,7 +70,7 @@ $ blynclight [OPTIONS] COMMAND [ARGS]...
 * `rainbow`: BlyncLights Love Rainbows! Smoothly...
 * `throbber`: BlyncLight Intensifies.
 
-## `blynclight fli`
+## `blync fli`
 
 Flash Light Impressively.
 
@@ -89,7 +89,7 @@ This mode runs until the user interrupts.
 **Usage**:
 
 ```console
-$ blynclight fli [OPTIONS]
+$ blync fli [OPTIONS]
 ```
 
 **Options**:
@@ -98,7 +98,7 @@ $ blynclight fli [OPTIONS]
 * `-i, --intensity INTEGER`: Integer range: 0 - 255  [default: 255]
 * `--help`: Show this message and exit.
 
-## `blynclight rainbow`
+## `blync rainbow`
 
 BlyncLights Love Rainbows!
 
@@ -117,7 +117,7 @@ This mode runs until the user interrupts.
 **Usage**:
 
 ```console
-$ blynclight rainbow [OPTIONS]
+$ blync rainbow [OPTIONS]
 ```
 
 **Options**:
@@ -125,7 +125,7 @@ $ blynclight rainbow [OPTIONS]
 * `-s, --slow`: Increase color cycle interval by 0.1 seconds.
 * `--help`: Show this message and exit.
 
-## `blynclight throbber`
+## `blync throbber`
 
 BlyncLight Intensifies.
 
@@ -146,7 +146,7 @@ This mode runs until the user interrupts.
 **Usage**:
 
 ```console
-$ blynclight throbber [OPTIONS]
+$ blync throbber [OPTIONS]
 ```
 
 **Options**:
