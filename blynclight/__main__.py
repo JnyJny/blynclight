@@ -1,199 +1,225 @@
+"""BlyncLight CLI Utilities
 """
-"""
+
+import typer
+
 
 from blynclight import BlyncLight, BlyncLightNotFound
-from itertools import cycle
 from collections import deque
+from itertools import cycle
 
 from pprint import pprint
+from sys import stdout
 from time import sleep
-from typer import Typer, Option, Exit
-
 
 from .effects import Gradient, Spectrum
-from .cli_options import light_id_option
-from .cli_options import red_option
-from .cli_options import green_option
-from .cli_options import blue_option
-from .cli_options import dim_option
-from .cli_options import list_available_option
-from .cli_options import version_option
-from .cli_options import verbose_option
-
-# from .options import
+from .__version__ import __version__
 
 
-blync_cli = Typer()
-fli_cli = Typer()
-throbber_cli = Typer()
-rainbow_cli = Typer()
+cli = typer.Typer()
 
 
-@blync_cli.command()
-def blync_cmd(
-    light_id: int = light_id_option,
-    red: int = red_option,
-    blue: int = blue_option,
-    green: int = green_option,
-    off: bool = Option(True, "--off/-on", "-o/-n", help="Activate the light."),
-    dim: bool = dim_option,
-    flash: bool = Option(False, "--flash", "-f", help="Toggle flash mode."),
-    speed: int = Option(0, "--speed", "-s", help="Flash speed range: 0 - 4"),
-    verbose: bool = verbose_option,
-    duration: int = Option(-1, "--duration", "-D", help="Time in seconds."),
-    available: bool = list_available_option,
-    version: bool = version_option,
+def list_lights(value: bool) -> None:
+    if value:
+        BlyncLight.report_available()
+        raise typer.Exit()
+
+
+def report_version(value: bool) -> None:
+    if value:
+        print(f"version: {__version__}")
+        raise typer.Exit()
+
+
+@cli.callback(invoke_without_command=True)
+def blync_callback(
+    ctx: typer.Context,
+    light_id: int = typer.Option(
+        0, "--light-id", "-i", help="Light identifier", show_default=True
+    ),
+    red: int = typer.Option(
+        0,
+        "--red",
+        "-r",
+        is_flag=True,
+        help="Integer range: 0 - 255",
+        show_default=True,
+    ),
+    blue: int = typer.Option(
+        0,
+        "--blue",
+        "-b",
+        is_flag=True,
+        help="Integer range: 0 - 255",
+        show_default=True,
+    ),
+    green: int = typer.Option(
+        0,
+        "--green",
+        "-g",
+        is_flag=True,
+        help="Integer range: 0 - 255",
+        show_default=True,
+    ),
+    red_b: bool = typer.Option(
+        False, "--RED", "-R", is_flag=True, help="Full value red [255]"
+    ),
+    blue_b: bool = typer.Option(
+        False, "--BLUE", "-B", is_flag=True, help="Full value blue [255]"
+    ),
+    green_b: bool = typer.Option(
+        False, "--GREEN", "-G", is_flag=True, help="Full value green [255]"
+    ),
+    off: bool = typer.Option(
+        False, "--off/--on", "-o/-n", help="Activate the light.", show_default=True
+    ),
+    dim: bool = typer.Option(
+        False,
+        "--dim",
+        "-d",
+        is_flag=True,
+        help="Toggle bright mode.",
+        show_default=True,
+    ),
+    flash: int = typer.Option(0, "--flash", "-f", count=True,),
+    available: bool = typer.Option(
+        False,
+        "--list-available",
+        "-l",
+        is_flag=True,
+        is_eager=True,
+        callback=list_lights,
+    ),
+    version: bool = typer.Option(
+        False, "--version", "-V", is_flag=True, is_eager=True, callback=report_version
+    ),
 ):
-    """Initialize the state of a connected BlyncLight and activate the
-    light for 'duration' seconds. If duration is not specified,
-    activation continues until an interrupt from the user is received.
+    """Some text about blynclights
 
     """
 
     try:
         light = BlyncLight.get_light(light_id)
     except BlyncLightNotFound as not_found:
-        print(not_found)
-        raise Exit()
+        typer.secho(str(not_found), fg="red")
+        raise typer.Exit()
 
-    with light.updates_paused():
-        light.red = red
-        light.blue = blue
-        light.green = green
-        light.off = off
-        light.dim = dim
-        light.flash = flash
-        light.speed = speed
+    light.immediate = 0
+    light.red = red if not red_b else 255
+    light.blue = blue if not blue_b else 255
+    light.green = green if not green_b else 255
+    light.off = off
+    light.dim = dim
+    light.flash = flash > 0
+    light.speed = 1 << flash - 1 if flash else 0
 
-    if verbose:
+    if not ctx.invoked_subcommand:
+        if light.on and light.color == (0, 0, 0):
+            light.green = 255
+        light.immediate = 1
         print(light)
+        typer.Exit()
 
-    while duration != 0:
-        duration -= 1
-        sleep(1)
+    light.on = True
+    light.flash = False
+    light.speed = 0
+
+    if ctx.invoked_subcommand == "throbber":
+        if light.color == (0, 0, 0):
+            light.red = 255
+
+    ctx.obj = light
 
 
-@fli_cli.command()
-def fli_cmd(
-    light_id: int = light_id_option,
-    interval: float = Option(0.1, "--interval", "-n", help="Seconds between flashes."),
-    count: int = Option(-1, "--count", "-c", help="Number of times to flash."),
-    intensity: int = Option(255, "--intensity", "-I", help="Integer range: 0 - 255"),
-    available: bool = list_available_option,
-    version: bool = version_option,
+@cli.command("fli")
+def fli_subcommand(
+    ctx: typer.Context,
+    interval: float = typer.Option(
+        0.1, "--interval", "-n", help="Seconds between flashes."
+    ),
+    intensity: int = typer.Option(
+        255, "--intensity", "-i", help="Integer range: 0 - 255"
+    ),
 ):
-    """FLI - Flash Light Impressively
+    """Flash Light Impressively.
 
-    Cycles the light identified by `light_id` thru red, green and blue
-    with the given intensity `count` times, pausing for `interval`
-    seconds.
-
-    Giving a count of -1 (the default) flashes the light until the user
-    supplies an interrupt.
     """
 
-    try:
-        light = BlyncLight.get_light(light_id)
-    except BlyncLightNotFound as not_found:
-        print(not_found)
-        raise Exit()
+    light = ctx.obj
 
     color = deque([(0x0FF & intensity) >> 0, 0, 0])
 
-    with light.updates_paused():
-        light.on = 1
-        light.color = list(color)
+    light.color = list(color)
 
+    light.immediate = 1
     try:
-        while count != 0:
-            count -= 1
+        while True:
             color.rotate(1)
             light.color = list(color)
             sleep(interval)
     except KeyboardInterrupt:
-        pass
+        light.off = True
+        light.reset()
 
 
-@throbber_cli.command()
-def throbber_cmd(
-    light_id: int = light_id_option,
-    red: bool = Option(False, "--red", "-r", help="Toggle red channel on."),
-    green: bool = Option(False, "--green", "-g", help="Toggle green channel on."),
-    blue: bool = Option(False, "--blue", "-b", help="Toggle blue channel on."),
-    white: bool = Option(False, "--white", "-w", help="Toggle all channels on."),
-    fast: int = Option(0, "--fast", "-f", help="Integer range: 0 - 24"),
-    dim: bool = Option(False, "--dim", "-d", help="Enable dim mode."),
-    available: bool = list_available_option,
-    version: bool = version_option,
+@cli.command("throbber")
+def throbber_subcommand(
+    ctx: typer.Context,
+    fast: int = typer.Option(
+        0, "--fast", "-f", help="Integer range: 0 - 24", count=True
+    ),
 ):
-    """BlyncLight intensifies.
+    """BlyncLight Intensifies.
+
     """
 
-    try:
-        light = BlyncLight.get_light(light_id)
-    except BlyncLightNotFound as not_found:
-        print(not_found)
-        raise Exit()
-
-    if white:
-        red = True
-        green = True
-        blue = True
-
-    if not any([red, green, blue]):
-        red = True
+    light = ctx.obj
 
     step = 8 * (min(max(0, fast), 24) + 1)
 
-    colors = Gradient(0, 255, step, red, green, blue)
+    colors = Gradient(0, 255, step, light.red, light.green, light.blue)
 
     colors.extend(c for c in reversed(colors))
 
-    with light.updates_paused():
-        light.on = True
-        light.color = (0, 0, 0)
-        light.dim = dim
+    light.color = (0, 0, 0)
+
+    light.immediate = 1
 
     try:
-        light.on = True
         while True:
             for color in cycle(colors):
                 light.color = color
                 sleep(0.05)
     except KeyboardInterrupt:
-        pass
+        light.off = True
+        light.reset()
 
 
-@rainbow_cli.command()
-def rainbow_cmd(
-    light_id: int = light_id_option,
-    speed: int = Option(
+@cli.command("rainbow")
+def rainbow_subcommand(
+    ctx: typer.Context,
+    speed: int = typer.Option(
         1, "--speed", "-s", help="Decrease color cycle interval by 0.1 seconds."
     ),
-    available: bool = list_available_option,
-    version: bool = version_option,
 ):
     """BlyncLights Love Rainbows!
 
     """
 
-    try:
-        light = BlyncLight.get_light(light_id)
-    except BlyncLightNotFound as not_found:
-        print(not_found)
-        raise Exit()
+    light = ctx.obj
 
     colors = [rgb for rgb in Spectrum(steps=255)]
 
     interval = speed * 0.1
 
-    with light.updates_paused():
-        light.on = True
-        light.color = (0, 0, 0)
+    light.on = True
+    light.color = (0, 0, 0)
+    light.immediate = 1
 
     try:
         for color in cycle(colors):
             light.color = color
             sleep(interval)
     except KeyboardInterrupt:
-        pass
+        light.off = True
+        light.reset()
