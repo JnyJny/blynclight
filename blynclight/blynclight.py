@@ -42,14 +42,11 @@ class BlyncLight(Structure):
     The BlyncLight object is an in-memory representation of the
     state of the hardware device. I have not been able to discern how
     to read the device's current state, so every time a new object is
-    instantiated it writes a known state to the device by default.
+    instantiated it writes a known state to the device by default:
+    all fields zeros except off.
 
     Additionally, any updates to the bit fields in the ByncLight class
     will be immediately written to the hardware device by default.
-
-    Finally, when a BlyncLight object is deallocated it will attempt
-    to return the light to a known quiescent state before releasing
-    the device.
 
     Callers can defer hardware updates by setting the 'immediate'
     attribute to False. Any changes to command fields will not be
@@ -92,9 +89,9 @@ class BlyncLight(Structure):
     The Embrava BlyncLight command word bit fields are:
 
     report : 8     Must be zero
-    red    : 8     Red component varies between 0-255
-    blue   : 8     Blue component varies between 0-255
-    green  : 8     Green component varies between 0-255
+    red    : 8     Red component value between 0-255
+    blue   : 8     Blue component value between 0-255
+    green  : 8     Green component value between 0-255
     off    : 1     0==on     1==off
     dim    : 1     0==bright 1==dim
     flash  : 1     0==steady 1==flash
@@ -105,7 +102,7 @@ class BlyncLight(Structure):
     play   : 1     0==stop 1==play
     repeat : 1     0==no repeat 1==repeat
     pad    : 2
-    volume : 4     1-10, increase volume by 10%
+    volume : 4     1-10, increase volume by 10% per increment
     pad    : 2
     eoc    : 16    End Of Command field, must be 0xffff
 
@@ -136,16 +133,10 @@ class BlyncLight(Structure):
         ("immediate", c_uint64, 1),
     ]
 
-    _ignore_ = ("report", "pad", "eoc")
-
-    # XXX available_lights should return a dictionary to keep
-    #     from instantiating BlyncLights which makes it harder
-    #     to use those devices later on. Otherwise we need to
-    #     start caching and managing open USB HID devices which
-    #     is complex and error prone.
+    _ignore_ = ("report", "pad", "eoc")  # fields that are *not* user commands
 
     @classmethod
-    def available_lights(cls) -> list:
+    def available_lights(cls) -> List[Dict[str, Any]]:
         """:return: list of dictionaries
 
         Returns a list of dictonary entries, each entry describing an
@@ -163,7 +154,7 @@ class BlyncLight(Structure):
         return [info for info in HidDevice.enumerate() if is_blynclight(info)]
 
     @classmethod
-    def get_light(cls, light_id: int = 0):
+    def get_light(cls, light_id: int = 0, immediate: bool = True):
         """:param light_id: optional integer
         :return: BlyncLight
 
@@ -175,12 +166,12 @@ class BlyncLight(Structure):
 
         """
         try:
-            return cls.from_dict(cls.available_lights()[light_id])
+            return cls.from_dict(cls.available_lights()[light_id], immediate=immediate)
         except IndexError:
             raise BlyncLightNotFound(f"Light for {light_id} not found.") from None
 
     @classmethod
-    def from_dict(cls, info: Dict[str, int]):
+    def from_dict(cls, info: Dict[str, int], immediate: bool = True):
         """:param info: dictionary
         :return: BlyncLight
 
@@ -193,27 +184,7 @@ class BlyncLight(Structure):
           input dictionary.
 
         """
-        return cls(info["vendor_id"], info["product_id"])
-
-    @classmethod
-    def report_available(cls) -> None:
-        """Prints an ugly report to stdout about each available BlyncLight
-        device. Report sort of lies. A light may be in use and so not really
-        "available". I'll fix it later.
-        """
-        lights = cls.available_lights()
-        print("Number of available lights:", len(lights))
-        for i, info in enumerate(lights):
-            print("{:>20s}:ID:VALUE".format("KEY"))
-            for k, v in info.items():
-                if len(str(v)) == 0:
-                    continue
-                if isinstance(v, int):
-                    v = hex(v)
-                if isinstance(v, bytes):
-                    v = v.decode("utf-8")
-                print(f"{k:>20s}:{i:02d}:{v}")
-            print()
+        return cls(info["vendor_id"], info["product_id"], immediate=immediate)
 
     def __init__(
         self, vendor_id: int, product_id: int, immediate: bool = True,
@@ -245,7 +216,7 @@ class BlyncLight(Structure):
 
         """
         if vendor_id not in EMBRAVA_VENDOR_IDS:
-            raise BlyncLightUnknownDevice(f"unknown vendor id 0x{vendor_id:04}")
+            raise BlyncLightUnknownDevice(f"Unknown vendor id: 0x{vendor_id:04}")
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.reset(flush=False)
@@ -268,9 +239,9 @@ class BlyncLight(Structure):
             self.device.write(self.bytes)
 
     def __str__(self) -> str:
-        s = [f"Device: {self.device.identifier}"]
+        s = []
         for name, value in self.status.items():
-            s.append(f"\t0x{value:04x} : {name}")
+            s.append(f"{self.device.identifier}:{name:>9s}:0x{value:04x}")
         return "\n".join(s)
 
     @property
@@ -312,10 +283,11 @@ class BlyncLight(Structure):
             return
 
         super().__setattr__(name, value)
+
         if name in self.commands and self.immediate:
             n = self.device.write(self.bytes)
             if n != len(self.bytes):
-                raise IOError(f"wrote {n} bytes, expected {len(self.bytes)} bytes")
+                raise IOError(f"Wrote {n} bytes, expected {len(self.bytes)} bytes")
 
     @property
     def device(self) -> HidDevice:
@@ -326,12 +298,14 @@ class BlyncLight(Structure):
             return self._device
         except AttributeError:
             pass
+
         try:
             self._device = HidDevice(self.vendor_id, self.product_id)
         except ValueError:
             raise BlyncLightInUse(self.vendor_id, self.product_id)
         except LookupError:
             raise BlyncLightNotFound(self.vendor_id, self.product_id)
+
         return self._device
 
     @property
@@ -391,7 +365,7 @@ class BlyncLight(Structure):
                 return
             except TypeError:
                 pass
-            self.red, self.blue, self.green = newValue[:3]
+            self.red, self.blue, self.green = newValue
 
     @property
     def on(self) -> bool:
