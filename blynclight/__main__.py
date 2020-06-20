@@ -94,7 +94,7 @@ def blync_callback(
         False, "--version", "-V", is_flag=True, is_eager=True, callback=report_version
     ),
 ):
-    """Some text about blynclights
+    """Control your Embrava BlyncLight from the command-line!
 
     """
 
