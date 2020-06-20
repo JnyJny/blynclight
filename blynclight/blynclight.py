@@ -1,10 +1,13 @@
 """Embrava Blynclight Support
 """
-from ctypes import Structure, c_uint64
+
 from contextlib import contextmanager
-from .hid import HidDevice
+from ctypes import Structure, c_uint64
+from typing import Any, Dict, List, Tuple, Union
+
 from .constants import EMBRAVA_VENDOR_IDS, END_OF_COMMAND, COMMAND_LENGTH, PAD_VALUE
 from .exceptions import BlyncLightNotFound, BlyncLightUnknownDevice, BlyncLightInUse
+from .hid import HidDevice
 
 
 class BlyncLight(Structure):
@@ -142,7 +145,7 @@ class BlyncLight(Structure):
     #     is complex and error prone.
 
     @classmethod
-    def available_lights(cls):
+    def available_lights(cls) -> list:
         """:return: list of dictionaries
 
         Returns a list of dictonary entries, each entry describing an
@@ -160,7 +163,7 @@ class BlyncLight(Structure):
         return [info for info in HidDevice.enumerate() if is_blynclight(info)]
 
     @classmethod
-    def get_light(cls, light_id=0):
+    def get_light(cls, light_id: int = 0):
         """:param light_id: optional integer
         :return: BlyncLight
 
@@ -174,10 +177,10 @@ class BlyncLight(Structure):
         try:
             return cls.from_dict(cls.available_lights()[light_id])
         except IndexError:
-            raise BlyncLightNotFound(f"Light for {light_id} not found.")
+            raise BlyncLightNotFound(f"Light for {light_id} not found.") from None
 
     @classmethod
-    def from_dict(cls, info):
+    def from_dict(cls, info: Dict[str, int]):
         """:param info: dictionary
         :return: BlyncLight
 
@@ -193,7 +196,7 @@ class BlyncLight(Structure):
         return cls(info["vendor_id"], info["product_id"])
 
     @classmethod
-    def report_available(cls):
+    def report_available(cls) -> None:
         """Prints an ugly report to stdout about each available BlyncLight
         device. Report sort of lies. A light may be in use and so not really
         "available". I'll fix it later.
@@ -212,7 +215,9 @@ class BlyncLight(Structure):
                 print(f"{k:>20s}:{i:02d}:{v}")
             print()
 
-    def __init__(self, vendor_id, product_id, immediate=True):
+    def __init__(
+        self, vendor_id: int, product_id: int, immediate: bool = True,
+    ):
         """:param vendor_id:  16-bit integer
         :param product_id: 16-bit integer
         :param immediate:  optional boolean
@@ -246,7 +251,7 @@ class BlyncLight(Structure):
         self.reset(flush=False)
         self.immediate = immediate
 
-    def reset(self, flush=True):
+    def reset(self, flush: bool = True) -> None:
         """:param flush: optional boolean
         :return: None
 
@@ -254,7 +259,6 @@ class BlyncLight(Structure):
         command to the device if flush is True.
 
         On return the immediate attribute is zero.
-
         """
         self.immediate = 0
         for name, typ, sz in self._fields_:
@@ -263,14 +267,14 @@ class BlyncLight(Structure):
         if flush:
             self.device.write(self.bytes)
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = [f"Device: {self.device.identifier}"]
         for name, value in self.status.items():
             s.append(f"\t0x{value:04x} : {name}")
         return "\n".join(s)
 
     @property
-    def status(self):
+    def status(self) -> Dict[str, int]:
         """A dictionary representation of the current light status.
         The keys are the command field names and the values are the
         integer contents of those fields.
@@ -281,19 +285,16 @@ class BlyncLight(Structure):
             retval.setdefault(command, value)
         return retval
 
-    def __len__(self):
+    def __len__(self) -> int:
         """The length of the command word in bytes.
         """
         return COMMAND_LENGTH
 
-    def __del__(self):
-        """Sets all light attributes to their default values
-        and updates the device before closing the USB device.
-        """
-        self.reset()
+    def __del__(self) -> None:
+
         self.device.close()
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         """Setting any BlyncLight command attribute triggers a write
         to the device if the immediate attribute is 1. If immediate
         is 0, the in-memory representation is changed but the
@@ -317,7 +318,7 @@ class BlyncLight(Structure):
                 raise IOError(f"wrote {n} bytes, expected {len(self.bytes)} bytes")
 
     @property
-    def device(self):
+    def device(self) -> HidDevice:
         """A blynclight.hid.HidDevice providing write access to
         an Embrava BlyncLight device.
         """
@@ -334,13 +335,13 @@ class BlyncLight(Structure):
         return self._device
 
     @property
-    def bytes(self):
+    def bytes(self) -> bytes:
         """A bytes representation of the 9 byte command word.
         """
         return bytes(self)[: len(self)]
 
     @property
-    def commands(self):
+    def commands(self) -> list:
         """List of valid BlyncLight command fields.
         """
         try:
@@ -353,7 +354,7 @@ class BlyncLight(Structure):
         return self._commands
 
     @contextmanager
-    def updates_paused(self):
+    def updates_paused(self) -> None:
         """Context manager that suspends immediate updating of the device
         for the duration of the manager's execution. When the manager exits
         the immediate bit is reset to it's previous value, which may trigger
@@ -367,7 +368,7 @@ class BlyncLight(Structure):
             self.immediate = imm
 
     @property
-    def color(self):
+    def color(self) -> Tuple[int]:
         """A tuple of (red, blue, green) hexadecimal values.
 
         A three-tuple of 8-bit integers or 24-bit hex number can be
@@ -381,7 +382,7 @@ class BlyncLight(Structure):
         return (self.red, self.blue, self.green)
 
     @color.setter
-    def color(self, newValue):
+    def color(self, newValue: Union[int, Tuple[int]]):
         with self.updates_paused():
             try:
                 self.red = (newValue >> 16) & 0x00FF
@@ -393,21 +394,21 @@ class BlyncLight(Structure):
             self.red, self.blue, self.green = newValue[:3]
 
     @property
-    def on(self):
+    def on(self) -> bool:
         """Inverse logic setter/getter for 'off' attribute.
         """
-        return 0 if self.off else 1
+        return bool(0 if self.off else 1)
 
     @on.setter
-    def on(self, newValue):
+    def on(self, newValue: bool) -> None:
         self.off = 0 if newValue else 1
 
     @property
-    def bright(self):
+    def bright(self) -> bool:
         """Inverse logic setter/getter for 'dim' attribute.
         """
-        return 0 if self.dim else 1
+        return bool(0 if self.dim else 1)
 
     @bright.setter
-    def bright(self, newValue):
+    def bright(self, newValue: bool) -> None:
         self.dim = 0 if newValue else 1
