@@ -117,7 +117,6 @@ def blync_callback(
         if light.on and light.color == (0, 0, 0):
             light.green = 255
         light.immediate = 1
-        print(light)
         typer.Exit()
 
     light.on = True
