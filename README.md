@@ -67,7 +67,7 @@ $ blync [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `fli`: Flash Light Impressively.
-* `rainbow`: BlyncLights Love Rainbows! Smoothly...
+* `rainbow`: BlyncLights Love Rainbows.
 * `throbber`: BlyncLight Intensifies.
 
 ## `blync fli`
@@ -100,7 +100,7 @@ $ blync fli [OPTIONS]
 
 ## `blync rainbow`
 
-BlyncLights Love Rainbows!
+BlyncLights Love Rainbows.
 
 Smoothly transition the color of the light using a rainbow sequence.
 The user can slow the speed of the color cycling by adding more

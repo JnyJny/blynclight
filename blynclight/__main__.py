@@ -307,7 +307,7 @@ def rainbow_subcommand(
         count=True,
     ),
 ):
-    """BlyncLights Love Rainbows!
+    """BlyncLights Love Rainbows.
 
     Smoothly transition the color of the light using a rainbow sequence.
     The user can slow the speed of the color cycling by adding more
