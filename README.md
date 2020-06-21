@@ -2,6 +2,8 @@
 
 Control your Embrava BlyncLight from the command-line!
 
+## Usage
+
 Use the `blync` utility to directly control your Embrava BlyncLight:
 
 
@@ -36,8 +38,7 @@ $ blync throbber
 $ blync rainbow
 ```
 
-
-Installation
+## Installation
 
 
 ```console
@@ -91,6 +92,8 @@ This mode cycles light color red, blue, green and then repeats. The
 user can specify the interval between color changes and the intesity
 of the colors. Color values specified on the command-line are ignored.
 
+## Examples
+
 
 ```console
 $ blync fli -n 1      # one second between color changes
@@ -119,6 +122,8 @@ Smoothly transition the color of the light using a rainbow sequence.
 The user can slow the speed of the color cycling by adding more
 --slow options to the command line:
 
+## Examples
+
 
 ```console
 $ blync rainbow -s   # slow cycling by 0.1 seconds
@@ -146,6 +151,8 @@ This mode increases the intensity of the light color starting with
 the specified red, green and blue values and ramping the color
 intensity up and down and repeating. The user can increase the rate
 of ramp by adding more -f options to the command line:
+
+## Examples
 
 
 ```console
