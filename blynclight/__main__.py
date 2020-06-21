@@ -36,7 +36,7 @@ def list_lights(value: bool) -> None:
         for index, info in enumerate(lights):
             typer.secho(f"ID:{'KEY':<16s}:VALUE", fg="blue")
             for key, value in info.items():
-                if not len(str(value)) or key == "path":
+                if not len(str(value)):
                     continue
                 if isinstance(value, int):
                     value = hex(value)
