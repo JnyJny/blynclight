@@ -240,6 +240,7 @@ class BlyncLight(Structure):
 
     def __str__(self) -> str:
         s = []
+        s.append(f'{self.device.identifier}:{"bytes":>9s}:0x{self.bytes.hex()}')
         for name, value in self.status.items():
             s.append(f"{self.device.identifier}:{name:>9s}:0x{value:04x}")
         return "\n".join(s)
