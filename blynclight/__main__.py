@@ -136,6 +136,8 @@ def blync_callback(
 ):
     """Control your Embrava BlyncLight from the command-line!
 
+    ## Usage
+
     Use the `blync` utility to directly control your Embrava BlyncLight:
 
     \b
@@ -170,8 +172,7 @@ def blync_callback(
     $ blync rainbow
     ```
 
-
-    Installation
+    ## Installation
 
     \b
     ```console
@@ -186,9 +187,9 @@ def blync_callback(
 
     try:
         light = BlyncLight.get_light(light_id, immediate=False)
-    except Exception as error:
+    except BlyncLightNotFound as error:
         typer.secho(str(error), fg="red")
-        raise typer.Exit(-1)
+        raise typer.Exit(-1) from None
 
     assert light.immediate == 0
 
@@ -208,10 +209,14 @@ def blync_callback(
     if not ctx.invoked_subcommand:
         if light.on and light.color == (0, 0, 0):
             light.color = DEFAULT_COLOR
-        light.immediate = 1
-        if verbose:
-            print(light)
-        typer.Exit()
+        try:
+            light.immediate = 1
+            if verbose:
+                print(light)
+            typer.Exit()
+        except Exception as error:
+            typer.secho(str(error), fg="red")
+            raise typer.Exit(-1) from None
 
     # Disable flashing for subcommands.
     light.flash = 0
@@ -235,6 +240,8 @@ def fli_subcommand(
     This mode cycles light color red, blue, green and then repeats. The
     user can specify the interval between color changes and the intesity
     of the colors. Color values specified on the command-line are ignored.
+
+    ## Examples
 
     \b
     ```console
@@ -275,6 +282,8 @@ def throbber_subcommand(
     the specified red, green and blue values and ramping the color
     intensity up and down and repeating. The user can increase the rate
     of ramp by adding more -f options to the command line:
+
+    ## Examples
 
     \b
     ```console
@@ -325,6 +334,8 @@ def rainbow_subcommand(
     Smoothly transition the color of the light using a rainbow sequence.
     The user can slow the speed of the color cycling by adding more
     --slow options to the command line:
+
+    ## Examples
 
     \b
     ```console
