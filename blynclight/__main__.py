@@ -179,7 +179,7 @@ def blync_callback(
     $ python3 -m pip install git+https://github.com/JnyJny/blynclight.git # latest
     ```
 
-    This module depends on (hidapi)[https://github.com/libusb/hidapi], which supports
+    This module depends on [hidapi](https://github.com/libusb/hidapi), which supports
     Windows, Linux, FreeBSD and MacOS. Check your favorite package managers before
     attempting to download and build the library from source.
     """
