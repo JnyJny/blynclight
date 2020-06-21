@@ -1,13 +1,14 @@
 """Embrava Blynclight Support
 """
 
+import hid
+
 from contextlib import contextmanager
 from ctypes import Structure, c_uint64
 from typing import Any, Dict, List, Tuple, Union
 
 from .constants import EMBRAVA_VENDOR_IDS, END_OF_COMMAND, COMMAND_LENGTH, PAD_VALUE
 from .exceptions import BlyncLightNotFound, BlyncLightUnknownDevice, BlyncLightInUse
-from .hid import HidDevice
 
 
 class BlyncLight(Structure):
@@ -151,7 +152,7 @@ class BlyncLight(Structure):
 
         is_blynclight = lambda d: d["vendor_id"] in EMBRAVA_VENDOR_IDS
 
-        return [info for info in HidDevice.enumerate() if is_blynclight(info)]
+        return [info for info in hid.enumerate() if is_blynclight(info)]
 
     @classmethod
     def get_light(cls, light_id: int = 0, immediate: bool = True):
@@ -217,6 +218,7 @@ class BlyncLight(Structure):
         """
         if vendor_id not in EMBRAVA_VENDOR_IDS:
             raise BlyncLightUnknownDevice(f"Unknown vendor id: 0x{vendor_id:04}")
+
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.reset(flush=False)
@@ -291,9 +293,8 @@ class BlyncLight(Structure):
                 raise IOError(f"Wrote {n} bytes, expected {len(self.bytes)} bytes")
 
     @property
-    def device(self) -> HidDevice:
-        """A blynclight.hid.HidDevice providing write access to
-        an Embrava BlyncLight device.
+    def device(self) -> hid.device:
+        """A hid.device providing access to an Embrava BlyncLight device.
         """
         try:
             return self._device
@@ -301,11 +302,18 @@ class BlyncLight(Structure):
             pass
 
         try:
-            self._device = HidDevice(self.vendor_id, self.product_id)
-        except ValueError:
-            raise BlyncLightInUse(self.vendor_id, self.product_id)
-        except LookupError:
-            raise BlyncLightNotFound(self.vendor_id, self.product_id)
+            self._device = hid.device()
+            self._device.open(self.vendor_id, self.product_id)
+
+        except OSError as error:
+            raise BlyncLightInUse(
+                f"Light 0x{self.vendor_id:04x}:0x{self.product_id:04x} in use."
+            )
+
+        except ValueError as error:
+            raise BlyncLightNotFound(
+                f"Light 0x{self.vendor_id:04x}:0x{self.product_id:04x} not found."
+            )
 
         return self._device
 

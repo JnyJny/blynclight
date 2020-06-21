@@ -28,12 +28,14 @@ python = "^3.6"
 click = "^7.0"
 requests = "^2.21"
 typer = "^0.2.1"
+hidapi = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4"
 pre-commit = "^1.15"
 black = "^18.3-alpha.0"
 typer-cli = "^0.0.9"
+hidapi = "^0.9.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

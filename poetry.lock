@@ -113,6 +113,17 @@ python-versions = "*"
 version = "3.0.12"
 
 [[package]]
+category = "main"
+description = "A Cython interface to the hidapi from https://github.com/libusb/hidapi"
+name = "hidapi"
+optional = false
+python-versions = "*"
+version = "0.9.0.post3"
+
+[package.dependencies]
+setuptools = ">=19.0"
+
+[[package]]
 category = "dev"
 description = "File identification library for Python"
 name = "identify"
@@ -417,7 +428,6 @@ version = "0.2.4"
 [[package]]
 category = "dev"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-marker = "python_version < \"3.8\""
 name = "zipp"
 optional = false
 python-versions = ">=3.6"
@@ -428,7 +438,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "5d814673db8dc5a2b2b777805ae819494b449a03836ce4814af37bd03d1157b8"
+content-hash = "81a6e5f47cd7182edb1004cfa30f276c95d5daf47c16ba1c6deab52d6d5a8e6d"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -478,6 +488,17 @@ distlib = [
 filelock = [
     {file = "filelock-3.0.12-py3-none-any.whl", hash = "sha256:929b7d63ec5b7d6b71b0fa5ac14e030b3f70b75747cef1b10da9b879fef15836"},
     {file = "filelock-3.0.12.tar.gz", hash = "sha256:18d82244ee114f543149c66a6e0c14e9c4f8a1044b5cdaadd0f82159d6a6ff59"},
+]
+hidapi = [
+    {file = "hidapi-0.9.0.post3-cp35-cp35m-win32.whl", hash = "sha256:98bada9a2625a90a452b17b237a342c29142677c77dd0ba96072f45b0e55d5ec"},
+    {file = "hidapi-0.9.0.post3-cp35-cp35m-win_amd64.whl", hash = "sha256:82d6276337d7cc25acda8b5fa99e0db497090c369611eefa18ea69c9afe55ed7"},
+    {file = "hidapi-0.9.0.post3-cp36-cp36m-win32.whl", hash = "sha256:92995887078d8e7b768a60b597d1117b1aba0a5184538b633be7192daeba34cc"},
+    {file = "hidapi-0.9.0.post3-cp36-cp36m-win_amd64.whl", hash = "sha256:4ee5bf9f2ece8ac73ef01f0a56ea6f62dcf024ba3beba6b29d3d52d96112931e"},
+    {file = "hidapi-0.9.0.post3-cp37-cp37m-win32.whl", hash = "sha256:12288a950d7c7c3756f25405b74eb17ad84032c06a65bbbe78adea8dd247f4c0"},
+    {file = "hidapi-0.9.0.post3-cp37-cp37m-win_amd64.whl", hash = "sha256:3910117ee13f3730f6810cf4b591f84dc4b55258163cbbdf9135b55deced1775"},
+    {file = "hidapi-0.9.0.post3-cp38-cp38-win32.whl", hash = "sha256:a1bf3893353f654613fecc10259097d417e76ff8799f3be459aed7d1e9cee7fd"},
+    {file = "hidapi-0.9.0.post3-cp38-cp38-win_amd64.whl", hash = "sha256:f70e0609c36605d3c06a91fbccc058e255918af2c59872648fe551360ad68df5"},
+    {file = "hidapi-0.9.0.post3.tar.gz", hash = "sha256:5a2442928f17ba742d9c53073f48b152051c5747d758d2fefd937543da5ab2e5"},
 ]
 identify = [
     {file = "identify-1.4.19-py2.py3-none-any.whl", hash = "sha256:781fd3401f5d2b17b22a8b18b493a48d5d948e3330634e82742e23f9c20234ef"},
