@@ -293,9 +293,9 @@ def throbber_subcommand(
 
     try:
         step = 8 * (min(max(0, fast), 24) + 1)
-        colors = Gradient(0, 255, step, light.red, light.green, light.blue)
-        colors += reversed(colors)
-
+        colors = Gradient(
+            0, 255, step, light.red, light.green, light.blue, reverse=True
+        )
         light.color = (0, 0, 0)
         light.immediate = 1
 
