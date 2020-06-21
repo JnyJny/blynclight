@@ -35,8 +35,8 @@ PATCH:
 
 
 README.md:
-	typer $(TARGET).__main__ utils docs --name blync --output $@
-	sed -i '' -e  "s///g" $@
+	@typer $(TARGET).__main__ utils docs --name blync --output $@
+	@sed -i '' -e  "s///g" $@
 
 
 update: $(VERSION_FILE)
