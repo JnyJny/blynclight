@@ -47,7 +47,7 @@ $ python3 -m pip install git+https://github.com/JnyJny/blynclight.git # latest
 ```
 
 This module depends on
-[hidapi](https://github.com/trezor/cython-hidapi)), which supports
+[hidapi](https://github.com/trezor/cython-hidapi), which supports
 Windows, Linux, FreeBSD and MacOS via a Cython module.
 
 **Usage**:
