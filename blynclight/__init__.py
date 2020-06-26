@@ -18,7 +18,7 @@ You can control Embrava BlyncLight devices directly:
 
 from .blynclight import BlyncLight
 
-from .constants import FlashSpeed, MusicSelections, MusicVolume
+from .constants import FlashSpeed, MusicSelections
 
 from .exceptions import BlyncLightNotFound, BlyncLightUnknownDevice, BlyncLightInUse
 
@@ -29,5 +29,4 @@ __all__ = [
     "BlyncLightUnknownDevice",
     "FlashSpeed",
     "MusicSelections",
-    "MusicVolume",
 ]
