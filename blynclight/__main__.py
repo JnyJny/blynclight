@@ -4,14 +4,16 @@ Control your Embrava BlyncLight from the command-line!
 
 """
 
+import sys
 import typer
 
 
-from blynclight import BlyncLight, BlyncLightNotFound
+from blynclight import BlyncLightNotFound
+from blynclight.newlight import BlyncLight
 from collections import deque
 from itertools import cycle
+from loguru import logger
 
-from pprint import pprint
 from sys import stdout
 from time import sleep
 
@@ -55,6 +57,20 @@ def report_version(value: bool) -> None:
     if value:
         print(f"version: {__version__}")
         raise typer.Exit()
+
+
+def verbosity(value: int) -> None:
+
+    logger.remove()
+
+    how_verbose = {0: 40, 1: 20, 2: 10, 3: 5}
+
+    if value > 2:
+        fmt = "<level>{level:>8}</>|{file}:{function}:{line}|{message}"
+    else:
+        fmt = "<level>{level:>8}</>|{message}"
+
+    logger.add(sys.stdout, colorize=True, level=how_verbose.get(value, 5), format=fmt)
 
 
 @cli.callback(invoke_without_command=True)
@@ -129,7 +145,7 @@ def blync_callback(
         is_eager=True,
         callback=list_lights,
     ),
-    verbose: int = typer.Option(0, "--verbose", "-v", count=True),
+    verbose: int = typer.Option(0, "--verbose", "-v", count=True, callback=verbosity),
     version: bool = typer.Option(
         False, "--version", "-V", is_flag=True, is_eager=True, callback=report_version
     ),
@@ -184,43 +200,45 @@ def blync_callback(
     [hidapi](https://github.com/trezor/cython-hidapi), which supports
     Windows, Linux, FreeBSD and MacOS via a Cython module.
     """
-
     try:
         light = BlyncLight.get_light(light_id, immediate=False)
     except BlyncLightNotFound as error:
         typer.secho(str(error), fg="red")
         raise typer.Exit(-1) from None
 
-    assert light.immediate == 0
+    assert not light.immediate
 
     light.red = red if not red_b else 255
     light.blue = blue if not blue_b else 255
     light.green = green if not green_b else 255
-    light.off = off
-    light.dim = dim
-    light.flash = flash > 0
-    light.speed = 1 << (flash - 1) if flash else 0
+    light.off = 1 if off else 0
+    light.dim = 1 if dim else 0
+    light.flash = 1 if flash > 0 else 0
+    light.speed = flash
 
     light.mute = 0 if play else 1
     light.music = play
+    light.play = 1 if play else 0
     light.volume = volume
-    light.repeat = repeat
+    light.repeat = 1 if repeat else 0
 
     if not ctx.invoked_subcommand:
+
         if light.on and light.color == (0, 0, 0):
             light.color = DEFAULT_COLOR
+
         try:
-            light.immediate = 1
-            if verbose:
-                print(light)
-            typer.Exit()
+            light.immediate = True
+            for line in str(light).splitlines():
+                logger.info(line)
+            raise typer.Exit()
         except Exception as error:
             typer.secho(str(error), fg="red")
             raise typer.Exit(-1) from None
 
     # Disable flashing for subcommands.
     light.flash = 0
-    light.speed = 0
+    light.speed = 1
 
     ctx.obj = light
 
