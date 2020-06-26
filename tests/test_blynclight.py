@@ -48,10 +48,9 @@ class FieldToTest:
     params=[
         FieldToTest("immediate", 0, 0),
         FieldToTest("immediate", 1, 1),
-        FieldToTest("report", 1, 0),
-        FieldToTest("red", 0xFF, 0xFF),
-        FieldToTest("blue", 0xFF, 0xFF),
-        FieldToTest("green", 0xFF, 0xFF),
+        FieldToTest("red", 0xAA, 0xAA),
+        FieldToTest("blue", 0xBB, 0xBB),
+        FieldToTest("green", 0xCC, 0xCC),
         FieldToTest("off", 0, 0),
         FieldToTest("off", 1, 1),
         FieldToTest("on", 0, 0),
@@ -63,30 +62,16 @@ class FieldToTest:
         FieldToTest("speed", 1 << 0, 1 << 0),
         FieldToTest("speed", 1 << 1, 1 << 1),
         FieldToTest("speed", 1 << 2, 1 << 2),
-        FieldToTest("speed", 0, 0),
-        FieldToTest("pad0", 1, PAD_VALUE),
         FieldToTest("music", 1, 1),  # XXX not sure how many music values there are
         FieldToTest("music", 0, 0),
         FieldToTest("play", 1, 1),
         FieldToTest("play", 0, 0),
         FieldToTest("repeat", 1, 1),
         FieldToTest("repeat", 0, 0),
-        FieldToTest("pad1", 1, PAD_VALUE),
         FieldToTest("volume", 1, 1),
-        FieldToTest("volume", 2, 2),
-        FieldToTest("volume", 3, 3),
-        FieldToTest("volume", 4, 4),
-        FieldToTest("volume", 5, 5),
-        FieldToTest("volume", 6, 6),
-        FieldToTest("volume", 7, 7),
-        FieldToTest("volume", 8, 8),
-        FieldToTest("volume", 9, 9),
         FieldToTest("volume", 0, 0),
-        FieldToTest("pad2", 1, PAD_VALUE),
         FieldToTest("mute", 1, 1),
         FieldToTest("mute", 0, 0),
-        FieldToTest("eoc", 0, END_OF_COMMAND),
-        FieldToTest("pad3", 1, PAD_VALUE),
     ]
 )
 def a_field(request):
@@ -99,26 +84,18 @@ def a_field(request):
 
 @pytest.fixture(
     params=[
-        FieldToTest("immediate", 0, 0),
-        FieldToTest("report", 1, 0),
         FieldToTest("red", 0xFF, 0),
         FieldToTest("blue", 0xFF, 0),
         FieldToTest("green", 0xFF, 0),
         FieldToTest("off", 0, 1),
         FieldToTest("dim", 1, 0),
         FieldToTest("flash", 1, 0),
-        FieldToTest("speed", 1, 0),
-        FieldToTest("pad0", 1, PAD_VALUE),
+        FieldToTest("speed", 1, 1),
         FieldToTest("music", 1, 0),
         FieldToTest("play", 1, 0),
         FieldToTest("repeat", 1, 0),
-        FieldToTest("pad1", 1, PAD_VALUE),
         FieldToTest("volume", 1, 0),
-        FieldToTest("pad2", 1, PAD_VALUE),
         FieldToTest("mute", 1, 0),
-        FieldToTest("eoc", 0, END_OF_COMMAND),
-        FieldToTest("pad3", 1, PAD_VALUE),
-        FieldToTest("immediate", 1, 0),
     ]
 )
 def reset_field(request):
@@ -221,18 +198,9 @@ def test_blynclight_length(Light):
     
     Check to make sure the BlyncLight's length is COMMAND_LENGTH.
     """
-    assert len(Light) == COMMAND_LENGTH
 
-
-def test_blynclight_command_property(Light):
-    """:param Light: BlyncLight fixture
-
-    Check to make sure the BlyncLight command property is a
-    list of strings.
-    """
-    assert isinstance(Light.commands, list)
-    for command in Light.commands:
-        assert isinstance(command, str)
+    assert len(Light) == COMMAND_LENGTH * 8
+    assert len(Light.bytes) == COMMAND_LENGTH
 
 
 def test_bitfield(Light, a_field):
@@ -414,7 +382,24 @@ def test_reseting_light(Light, reset_field):
     assert value == reset_field.expected
 
 
-def test_status_property(Light):
+@pytest.mark.parametrize(
+    "propname",
+    [
+        "red",
+        "blue",
+        "green",
+        "off",
+        "dim",
+        "flash",
+        "speed",
+        "repeat",
+        "play",
+        "music",
+        "mute",
+        "volume",
+    ],
+)
+def test_status_property(propname, Light):
     """:param light: BlyncLight fixture
     
     Confirms that the BlyncLight property 'status' is a
@@ -425,7 +410,4 @@ def test_status_property(Light):
 
     status = Light.status
     assert isinstance(status, dict)
-    for command in Light.commands:
-        assert command in status.keys()
-        value = status[command]
-        assert isinstance(value, int)
+    assert propname in status
