@@ -3,9 +3,9 @@
 
 import enum
 
+COMMAND_LENGTH = 9
 EMBRAVA_VENDOR_IDS = [0x2C0D, 0x0E53]
 END_OF_COMMAND = 0xFF22
-COMMAND_LENGTH = 9
 PAD_VALUE = 0
 
 
@@ -26,30 +26,18 @@ class DeviceType(enum.Enum):
 
 
 class FlashSpeed(enum.IntEnum):
-    OFF = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 4
 
-    def is_valid(self, speed):
-        """Returns True if speed is a valid flash speed value.
+    @classmethod
+    def speed_for_value(cls, value: int):
+        return {1: cls.LOW, 2: cls.MEDIUM, 3: cls.HIGH}.get(value, cls.LOW)
 
-        """
-        return speed in [self.OFF, self.LOW, self.MEDIUM, self.HIGH]
+    @classmethod
+    def value_for_speed(cls, speed: int) -> int:
+        return {cls.LOW: 1, cls.MEDIUM: 2, cls.HIGH: 3}.get(speed, 1)
 
 
 class MusicSelections(enum.Enum):
     pass
-
-
-class MusicVolume(enum.IntEnum):
-    Vol010Percent = 1
-    Vol020Percent = 2
-    Vol030Percent = 3
-    Vol040Percent = 4
-    Vol050Percent = 5
-    Vol060Percent = 6
-    Vol070Percent = 7
-    Vol080Percent = 8
-    Vol090Percent = 9
-    Vol100Percent = 10

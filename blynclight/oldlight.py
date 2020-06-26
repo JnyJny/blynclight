@@ -3,6 +3,8 @@
 
 import hid
 
+from loguru import logger
+
 from contextlib import contextmanager
 from ctypes import Structure, c_uint64
 from typing import Any, Dict, List, Tuple, Union
@@ -221,6 +223,15 @@ class BlyncLight(Structure):
 
         self.vendor_id = vendor_id
         self.product_id = product_id
+        self.identifier = f"0x{vendor_id:04x}:0x{product_id:04x}"
+        self.device = hid.device()
+        try:
+            self.device.open(vendor_id, product_id)
+        except OSError:
+            raise BlyncLightInUse(f"Light {self.identifier} in use.")
+        except ValueError:
+            raise BlyncLightNotFound(f"Light {self.identifier} not found.")
+
         self.reset(flush=False)
         self.immediate = immediate
 
@@ -242,9 +253,10 @@ class BlyncLight(Structure):
 
     def __str__(self) -> str:
         s = []
-        s.append(f'{self.device.identifier}:{"bytes":>9s}:0x{self.bytes.hex()}')
+        s.append(f'{self.identifier}:{"bytes":>9s}:{self.bytes.hex()}')
+        s.append(f'{self.identifier}:{"bytes":>9s}:{[hex(b) for b in self.bytes]}')
         for name, value in self.status.items():
-            s.append(f"{self.device.identifier}:{name:>9s}:0x{value:04x}")
+            s.append(f"{self.identifier}:{name:>9s}:0x{value:04x}")
         return "\n".join(s)
 
     @property
@@ -253,11 +265,7 @@ class BlyncLight(Structure):
         The keys are the command field names and the values are the
         integer contents of those fields.
         """
-        retval = {}
-        for command in self.commands:
-            value = getattr(self, command)
-            retval.setdefault(command, value)
-        return retval
+        return {cmd: getattr(self, cmd) for cmd in self.commands}
 
     def __len__(self) -> int:
         """The length of the command word in bytes.
@@ -287,35 +295,16 @@ class BlyncLight(Structure):
 
         super().__setattr__(name, value)
 
-        if name in self.commands and self.immediate:
+        if name not in self.commands:
+            return
+
+        logger.trace(f"{name}={value} immediate {self.immediate}")
+
+        if self.immediate:
+            logger.trace(f"bytes: {[hex(x) for x in self.bytes]}")
             n = self.device.write(self.bytes)
             if n != len(self.bytes):
                 raise IOError(f"Wrote {n} bytes, expected {len(self.bytes)} bytes")
-
-    @property
-    def device(self) -> hid.device:
-        """A hid.device providing access to an Embrava BlyncLight device.
-        """
-        try:
-            return self._device
-        except AttributeError:
-            pass
-
-        try:
-            self._device = hid.device()
-            self._device.open(self.vendor_id, self.product_id)
-
-        except OSError as error:
-            raise BlyncLightInUse(
-                f"Light 0x{self.vendor_id:04x}:0x{self.product_id:04x} in use."
-            )
-
-        except ValueError as error:
-            raise BlyncLightNotFound(
-                f"Light 0x{self.vendor_id:04x}:0x{self.product_id:04x} not found."
-            )
-
-        return self._device
 
     @property
     def bytes(self) -> bytes:
