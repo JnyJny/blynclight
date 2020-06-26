@@ -9,7 +9,7 @@ from loguru import logger
 
 from .bitvector import BitVector, BitField
 from .constants import EMBRAVA_VENDOR_IDS, FlashSpeed, END_OF_COMMAND, COMMAND_LENGTH
-from .exceptions import BlyncLightInUse, BlyncLightNotFound
+from .exceptions import BlyncLightInUse, BlyncLightNotFound, BlyncLightUnknownDevice
 
 
 class BlyncCommand(BitField):
@@ -63,18 +63,18 @@ class BlyncLight(BitVector):
         """
         try:
             light = cls.available_lights()[light_id]
-        except KeyError:
+        except IndexError:
             raise BlyncLightNotFound(light_id)
 
         return cls(light["vendor_id"], light["product_id"], immediate)
 
     def __init__(self, vendor_id: int, product_id: int, immediate: bool = False):
         super().__init__(size=COMMAND_LENGTH * 8)
+
         self.vendor_id = vendor_id
         self.product_id = product_id
-        self.speed = 1
-        self[0:16] = END_OF_COMMAND
-
+        if vendor_id not in EMBRAVA_VENDOR_IDS:
+            raise BlyncLightUnknownDevice(self.identifier)
         self.device = hid.device()
         try:
             self.device.open(vendor_id, product_id)
@@ -82,10 +82,9 @@ class BlyncLight(BitVector):
             raise BlyncLightInUse(self.identifier)
         except ValueError:
             raise BlyncLightNotFound(self.identifier)
-
+        self.reset()
         self.immediate = immediate
 
-    report = BlyncCommand(64, 8)
     red = BlyncCommand(56, 8)
     blue = BlyncCommand(48, 8)
     green = BlyncCommand(40, 8)
@@ -100,29 +99,73 @@ class BlyncLight(BitVector):
     volume = BlyncCommand(16, 4)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.identifier}, {self.value.hex()})"
+        return f"{self.__class__.__name__}({self.identifier})"
 
     def __str__(self):
-        lines = []
-        lines.append(f" Light:{self.identifier}")
-        lines.append(f" Value:{super().__str__()}")
-        lines.append(f"   Red:0x{self.red:02x}")
-        lines.append(f"  Blue:0x{self.blue:02x}")
-        lines.append(f" Green:0x{self.green:02x}")
-        lines.append(f"   Off:0x{self.off:1x}")
-        lines.append(f"   Dim:0x{self.dim:1x}")
-        lines.append(f" Flash:0x{self.flash:1x}")
-        lines.append(f" Speed:0x{self.speed:1x}")
-        lines.append(f"Repeat:0x{self.repeat:1x}")
-        lines.append(f"  Play:0x{self.play:1x}")
-        lines.append(f" Music:0x{self.music:1x}")
-        lines.append(f"  Mute:0x{self.mute:1x}")
-        lines.append(f"Volume:0x{self.volume:1x}")
+        lines = [f" Light:{self.identifier}", f" Value:{super().__str__()}"]
+        for k, v in self.status.items():
+            lines.append(f"{k.capitalize():>6s}:{v}")
         return "\n".join(lines)
+
+    def __del__(self):
+
+        self.device.close()
+
+    def update(self, force: bool = False) -> None:
+        """
+        """
+        if self.immediate or force:
+            self.device.write(self.bytes)
+            return
+
+    def reset(self, flush: bool = True) -> None:
+        """
+        """
+        with self.updates_paused():
+            self[64:72] = 0
+            self.red = 0
+            self.blue = 0
+            self.green = 0
+            self.off = 1
+            self.dim = 0
+            self.flash = 0
+            self.speed = 1
+            self.repeat = 0
+            self.play = 0
+            self.music = 0
+            self.mute = 0
+            self.volume = 0
+            self[0:16] = END_OF_COMMAND
+
+        self.update(force=flush)
 
     @property
     def identifier(self):
         return f"0x{self.vendor_id:04x}:0x{self.product_id:04x}"
+
+    @property
+    def status(self) -> Dict[str, str]:
+        try:
+            return self._status
+        except AttributeError:
+            pass
+
+        self._status = {
+            "red": f"0x{self.red:02x}",
+            "blue": f"0x{self.blue:02x}",
+            "green": f"0x{self.green:02x}",
+            "off": f"0x{self.off:1x}",
+            "dim": f"0x{self.dim:1x}",
+            "flash": f"0x{self.flash:1x}",
+            "speed": f"0x{self.speed:1x}",
+            "repeat": f"0x{self.repeat:1x}",
+            "play": f"0x{self.play:1x}",
+            "music": f"0x{self.music:1x}",
+            "mute": f"0x{self.mute:1x}",
+            "volume": f"0x{self.volume:1x}",
+        }
+
+        return self._status
 
     @property
     def immediate(self):
@@ -132,16 +175,6 @@ class BlyncLight(BitVector):
     def immediate(self, new_value: bool) -> None:
         self._immediate = bool(new_value)
         self.update()
-
-    def update(self, force: bool = False) -> None:
-        """
-        """
-
-        if self.immediate or force:
-            logger.debug(f"UPDATE: status {self.bytes}")
-            self.device.write(self.bytes)
-            return
-        logger.debug(f"DEFERRED: imm={self.immediate} force={force}")
 
     @property
     def on(self) -> bool:
