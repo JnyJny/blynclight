@@ -9,7 +9,7 @@ import typer
 
 
 from blynclight import BlyncLightNotFound
-from blynclight.newlight import BlyncLight
+from blynclight.blynclight import BlyncLight
 from collections import deque
 from itertools import cycle
 from loguru import logger
