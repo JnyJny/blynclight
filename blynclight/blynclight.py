@@ -199,17 +199,18 @@ class BlyncLight(BitVector):
     @color.setter
     def color(self, new_value: Union[int, Tuple[int, int, int]]) -> None:
 
-        if isinstance(new_value, int):
-            values = new_value.to_bytes(3, "big")
-
-        if isinstance(new_value, tuple):
+        try:
             values = new_value
+        except TypeError as error:
+            values = new_value.to_bytes(3, "big")
+        except ValueError as error:
+            raise error from None
 
         with self.updates_paused():
             try:
                 self.red, self.blue, self.green = values
             except NameError:
-                raise TypeError("Expecting a 24-bit color or tuple of bytes.")
+                raise TypeError("Expecting a 24-bit color or tuple of bytes.") from None
 
     @contextmanager
     def updates_paused(self):
