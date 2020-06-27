@@ -226,7 +226,6 @@ def blync_callback(
 
         if light.on and light.color == (0, 0, 0):
             light.color = DEFAULT_COLOR
-
         try:
             light.immediate = True
             for line in str(light).splitlines():
@@ -238,7 +237,6 @@ def blync_callback(
 
     # Disable flashing for subcommands.
     light.flash = 0
-    light.speed = 1
 
     ctx.obj = light
 
