@@ -230,10 +230,10 @@ def blync_callback(
             light.immediate = True
             for line in str(light).splitlines():
                 logger.info(line)
-            raise typer.Exit()
         except Exception as error:
             typer.secho(str(error), fg="red")
             raise typer.Exit(-1) from None
+        raise typer.Exit()
 
     # Disable flashing for subcommands.
     light.flash = 0
