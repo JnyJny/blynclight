@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "blynclight"
-version = "0.10.2"
+version = "0.10.3"
 description = "Python language bindings for Embrava BlyncLight devices."
 authors = ["Erik O'Shaughnessy <erik.oshaughnessy@gmail.com>"]
 license = "Apache-2.0"
