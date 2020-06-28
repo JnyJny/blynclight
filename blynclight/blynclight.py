@@ -290,17 +290,30 @@ class BlyncLight(BitVector):
 
     @color.setter
     def color(self, new_value: Union[int, Tuple[int, int, int]]) -> None:
+        """Sets the red, blue and green color fields from a 24bit integer
+        or a 3-tuple of ints. Updates to the device are deferred until all
+        three color values are modified. 
+
+        If a 24-bit color value is supplied, it should be of the form:
+
+        0xRRBBGG
+
+        :param new_value: Union[int, tupe(int, int, int)]
+        """
 
         if issubclass(type(new_value), Sequence):
-            values = new_value[:3]
-        else:
-            try:
-                values = new_value.to_bytes(3, "big")
-            except AttributeError:
-                raise TypeError("Expecting a 24-bit color or tuple of bytes.") from None
+            with self.updates_paused():
+                self.red, self.blue, self.green = new_value
+            return
 
-        with self.updates_paused():
-            self.red, self.blue, self.green = values
+        try:
+            with self.updates_paused():
+                self.red, self.blue, self.green = new_value.to_bytes(3, "big")
+            return
+        except AttributeError:
+            pass
+
+        raise TypeError("Expecting a 24-bit color or tuple of bytes.")
 
     @contextmanager
     def updates_paused(self):
