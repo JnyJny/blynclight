@@ -59,9 +59,9 @@ class FieldToTest:
         FieldToTest("dim", 0, 0),
         FieldToTest("flash", 1, 1),
         FieldToTest("flash", 0, 0),
-        FieldToTest("speed", 1 << 0, 1 << 0),
-        FieldToTest("speed", 1 << 1, 1 << 1),
-        FieldToTest("speed", 1 << 2, 1 << 2),
+        FieldToTest("speed", 1, 1),
+        FieldToTest("speed", 2, 2),
+        FieldToTest("speed", 3, 3),
         FieldToTest("music", 1, 1),  # XXX not sure how many music values there are
         FieldToTest("music", 0, 0),
         FieldToTest("play", 1, 1),
