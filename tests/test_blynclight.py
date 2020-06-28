@@ -27,77 +27,16 @@ from blynclight.constants import (
 
 @dataclass
 class FieldToTest:
-    """Encapsulates field name, a value to set and the expected value when
-    the field is read.
+    """Encapsulates field name, a given value to set and the expected
+    value when the field is read.
     """
 
     name: str
-    value: int
+    given: int
     expected: int
 
 
-### BlyncLights are controlled by a command word that is composed of
-### bit fields. We build a list of fields to test where each Field
-### entry has a name, a value to use setting the field and the
-### expected value when we read the field again.  Some fields are
-### invariant and return the same value regardless of the setting
-### value: eoc, report and pads zero thru three.
-
-
-@pytest.fixture(
-    params=[
-        FieldToTest("immediate", 0, 0),
-        FieldToTest("immediate", 1, 1),
-        FieldToTest("red", 0xAA, 0xAA),
-        FieldToTest("blue", 0xBB, 0xBB),
-        FieldToTest("green", 0xCC, 0xCC),
-        FieldToTest("off", 0, 0),
-        FieldToTest("off", 1, 1),
-        FieldToTest("on", 0, 0),
-        FieldToTest("on", 1, 1),
-        FieldToTest("dim", 1, 1),
-        FieldToTest("dim", 0, 0),
-        FieldToTest("flash", 1, 1),
-        FieldToTest("flash", 0, 0),
-        FieldToTest("speed", 1, 1),
-        FieldToTest("speed", 2, 2),
-        FieldToTest("speed", 3, 3),
-        FieldToTest("music", 1, 1),  # XXX not sure how many music values there are
-        FieldToTest("music", 0, 0),
-        FieldToTest("play", 1, 1),
-        FieldToTest("play", 0, 0),
-        FieldToTest("repeat", 1, 1),
-        FieldToTest("repeat", 0, 0),
-        FieldToTest("volume", 1, 1),
-        FieldToTest("volume", 0, 0),
-        FieldToTest("mute", 1, 1),
-        FieldToTest("mute", 0, 0),
-    ]
-)
-def a_field(request):
-    """This fixture presents a list of FieldToTest objects to test
-    setting fields on the BlyncLight and making sure that the value
-    can be read back. 
-    """
-    return request.param
-
-
-@pytest.fixture(
-    params=[
-        FieldToTest("red", 0xFF, 0),
-        FieldToTest("blue", 0xFF, 0),
-        FieldToTest("green", 0xFF, 0),
-        FieldToTest("off", 0, 1),
-        FieldToTest("dim", 1, 0),
-        FieldToTest("flash", 1, 0),
-        FieldToTest("speed", 1, 1),
-        FieldToTest("music", 1, 0),
-        FieldToTest("play", 1, 0),
-        FieldToTest("repeat", 1, 0),
-        FieldToTest("volume", 1, 0),
-        FieldToTest("mute", 1, 0),
-    ]
-)
+@pytest.fixture(params=[])
 def reset_field(request):
     """This fixture presents a list of FieldToTest objects for the
     purpose of testing the BlyncLight.reset() method. The fields
@@ -203,19 +142,48 @@ def test_blynclight_length(Light):
     assert len(Light.bytes) == COMMAND_LENGTH
 
 
-def test_bitfield(Light, a_field):
+@pytest.mark.parametrize(
+    "field",
+    [
+        FieldToTest("immediate", 0, 0),
+        FieldToTest("immediate", 1, 1),
+        FieldToTest("red", 0xAA, 0xAA),
+        FieldToTest("blue", 0xBB, 0xBB),
+        FieldToTest("green", 0xCC, 0xCC),
+        FieldToTest("off", 0, 0),
+        FieldToTest("off", 1, 1),
+        FieldToTest("on", 0, 0),
+        FieldToTest("on", 1, 1),
+        FieldToTest("dim", 1, 1),
+        FieldToTest("dim", 0, 0),
+        FieldToTest("flash", 1, 1),
+        FieldToTest("flash", 0, 0),
+        FieldToTest("speed", 1, 1),
+        FieldToTest("speed", 2, 2),
+        FieldToTest("speed", 3, 3),
+        FieldToTest("music", 1, 1),  # XXX not sure how many music values there are
+        FieldToTest("music", 0, 0),
+        FieldToTest("play", 1, 1),
+        FieldToTest("play", 0, 0),
+        FieldToTest("repeat", 1, 1),
+        FieldToTest("repeat", 0, 0),
+        FieldToTest("volume", 1, 1),
+        FieldToTest("volume", 0, 0),
+        FieldToTest("mute", 1, 1),
+        FieldToTest("mute", 0, 0),
+    ],
+)
+def test_bitfield(field, Light):
     """:param Light: BlyncLight fixture
-    :param a_field: FieldToTest fixture
+    :param field: FieldToTest fixture
 
     Tests a BlyncLight field by setting the light's
     field to value and then comparing the attribute's
-    value to the expected value. All the fields specified in
-    the a_field fixture are tested, regardless of whether the
-    field is a valid 'command' or a padding or control field.
+    value to the expected value. 
     """
-    setattr(Light, a_field.name, a_field.value)
-    value = getattr(Light, a_field.name)
-    assert value == a_field.expected
+    setattr(Light, field.name, field.given)
+    value = getattr(Light, field.name)
+    assert value == field.expected
 
 
 def test_color_property_tuple(Light):
@@ -265,7 +233,8 @@ def test_color_property_hex(Light):
     assert Light.green == 0x33
 
 
-def test_updates_paused_context_manager(Light):
+@pytest.mark.parametrize("starting_immediate", [True, False])
+def test_updates_paused_context_manager(starting_immediate: bool, Light):
     """:param light: BlyncLight fixture
 
     By default, a BlyncLight object writes it's in-memory
@@ -279,12 +248,12 @@ def test_updates_paused_context_manager(Light):
     and then checks that immediate is restored to it's
     original value when the context manager exits.
     """
-    for value in [True, False]:
-        Light.immediate = value
-        assert Light.immediate == value
-        with Light.updates_paused():
-            assert Light.immediate == False
-        assert Light.immediate == value
+
+    Light.immediate = starting_immediate
+    assert Light.immediate == starting_immediate
+    with Light.updates_paused():
+        assert Light.immediate == False
+    assert Light.immediate == starting_immediate
 
 
 def test_on_property(Light):
@@ -364,7 +333,24 @@ def test_open_same_device(number_of_lights):
     assert isinstance(c_light, BlyncLight)
 
 
-def test_reseting_light(Light, reset_field):
+@pytest.mark.parametrize(
+    "field",
+    [
+        FieldToTest("red", 0xFF, 0),
+        FieldToTest("blue", 0xFF, 0),
+        FieldToTest("green", 0xFF, 0),
+        FieldToTest("off", 0, 1),
+        FieldToTest("dim", 1, 0),
+        FieldToTest("flash", 1, 0),
+        FieldToTest("speed", 1, 1),
+        FieldToTest("music", 1, 0),
+        FieldToTest("play", 1, 0),
+        FieldToTest("repeat", 1, 0),
+        FieldToTest("volume", 1, 0),
+        FieldToTest("mute", 1, 1),
+    ],
+)
+def test_reseting_light(field, Light):
     """:param light: BlyncLight fixture
     :param reset_field: FieldToTest fixture
 
@@ -374,12 +360,12 @@ def test_reseting_light(Light, reset_field):
     the reset field value compared to the expected value.
     """
 
-    setattr(Light, reset_field.name, reset_field.value)
+    setattr(Light, field.name, field.given)
 
     Light.reset(flush=False)
 
-    value = getattr(Light, reset_field.name)
-    assert value == reset_field.expected
+    value = getattr(Light, field.name)
+    assert value == field.expected
 
 
 @pytest.mark.parametrize(
