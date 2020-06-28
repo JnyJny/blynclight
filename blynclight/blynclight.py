@@ -1,7 +1,9 @@
+from collections import Sequence
 from contextlib import contextmanager
 from enum import Enum
 from typing import Dict, List, Tuple, Union
 from functools import partial, partialmethod, wraps
+
 
 import hid
 
@@ -51,8 +53,7 @@ class BlyncLight(BitVector):
     model's firmware, muting or changing the volume of the playing
     music.
 
-    Not all devices have musical capability and music related
-    functionality has not yet been tested. 3 Apr 2019
+    Not all devices have musical capability.
 
     The recommended way to obtain a BlyncLight object is to use the
     class method get_light().
@@ -72,8 +73,7 @@ class BlyncLight(BitVector):
     The BlyncLight object is an in-memory representation of the
     state of the hardware device. I have not been able to discern how
     to read the device's current state, so every time a new object is
-    instantiated it writes a known state to the device by default:
-    all fields zeros except off.
+    instantiated it writes a known state to the device by default.
 
     Additionally, any updates to the bit fields in the ByncLight class
     will be immediately written to the hardware device by default.
@@ -191,7 +191,7 @@ class BlyncLight(BitVector):
     volume = BlyncCommand(18, 4)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.identifier})"
+        return f"{self.__class__.__name__}(product_id=0x{self.product_id:04x}, vendor_id=0x{self.product_id:04x})"
 
     def __str__(self):
         lines = [f" Light:{self.identifier}", f" Value:{super().__str__()}"]
@@ -270,11 +270,11 @@ class BlyncLight(BitVector):
 
     @property
     def on(self) -> bool:
-        return not self.off
+        return 0 if self.off else 1
 
     @on.setter
     def on(self, new_value: Union[int, bool]) -> None:
-        self.off = not new_value
+        self.off = 0 if new_value else 1
 
     @property
     def bright(self) -> bool:
@@ -291,18 +291,16 @@ class BlyncLight(BitVector):
     @color.setter
     def color(self, new_value: Union[int, Tuple[int, int, int]]) -> None:
 
-        try:
-            values = new_value
-        except TypeError as error:
-            values = new_value.to_bytes(3, "big")
-        except ValueError as error:
-            raise error from None
+        if issubclass(type(new_value), Sequence):
+            values = new_value[:3]
+        else:
+            try:
+                values = new_value.to_bytes(3, "big")
+            except AttributeError:
+                raise TypeError("Expecting a 24-bit color or tuple of bytes.") from None
 
         with self.updates_paused():
-            try:
-                self.red, self.blue, self.green = values
-            except NameError:
-                raise TypeError("Expecting a 24-bit color or tuple of bytes.") from None
+            self.red, self.blue, self.green = values
 
     @contextmanager
     def updates_paused(self):
