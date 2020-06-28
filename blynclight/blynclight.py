@@ -4,7 +4,6 @@ from enum import Enum
 from typing import Dict, List, Tuple, Union
 from functools import partial, partialmethod, wraps
 
-
 import hid
 
 from loguru import logger
@@ -29,19 +28,19 @@ class BlyncCommand(BitField):
 
 
 class BlyncColor(BlyncCommand):
-    """An eight-bit color value."""
+    """An eight-bit unsigned integer color value."""
 
 
 class BlyncOff(BlyncCommand):
-    """Single bit toggle: light off (off == 1) and on (off == 0)."""
+    """Single bit toggle that toggles the light on and off."""
 
 
 class BlyncDim(BlyncCommand):
-    """Single bit toggle: light dim (dim == 1) and bright (dim == 0)."""
+    """Single bit toggle that dims the light when set."""
 
 
 class BlyncFlash(BlyncCommand):
-    """Single bit toggle; Blinking (flash == 1) and steady (flash == 0)."""
+    """Single bit toggle that enables flash mode when set."""
 
 
 class BlyncSpeed(BlyncCommand):
@@ -74,15 +73,15 @@ class BlyncPlay(BlyncCommand):
 
 
 class BlyncMusic(BlyncCommand):
-    """Four bit field that choose which song to play."""
+    """Four bit field that chooses which song to play."""
 
 
 class BlyncVolume(BlyncCommand):
-    """Four bit field that the volume used to play a song."""
+    """Four bit field that controls the volume used to play a song."""
 
 
 class BlyncMute(BlyncCommand):
-    """Single bit that toggles music mute and unmute."""
+    """Single bit toggles that mutes and unmutes playing music."""
 
 
 class BlyncLight(BitVector):
