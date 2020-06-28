@@ -362,11 +362,16 @@ class BlyncLight(BitVector):
         except AttributeError:
             pass
 
-        raise TypeError("Expecting a 24-bit color or tuple of bytes.")
+        raise TypeError("Expected a 24-bit color or tuple of bytes.")
 
     @contextmanager
     def updates_paused(self):
-        """Pauses updates to the light until the context manager exits.
+        """Context manager that allows bulk updates to the target lights'
+        in-memory state. The context manager saves the current value of
+        `immediate` and sets `immediate` to False.  This reduces the number
+        writes to the target device and "hides" in-between states that
+        may be undesirable. On exit from the context manager, `immediate`
+        is restored to it's previous value.
         """
         imm = self.immediate
         self.immediate = False
