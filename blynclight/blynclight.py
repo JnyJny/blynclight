@@ -15,6 +15,11 @@ from .exceptions import BlyncLightInUse, BlyncLightNotFound, BlyncLightUnknownDe
 
 
 class BlyncCommand(BitField):
+    """BlyncCommand is descriptor which will conditionally write
+    the contents of the BlyncLight to the target device when a field
+    is updated. 
+    """
+
     def __set__(self, obj, value) -> None:
         super().__set__(obj, value)
         try:
@@ -24,10 +29,12 @@ class BlyncCommand(BitField):
 
 
 class BlyncSpeed(BlyncCommand):
-    # speed gets it's own descriptor implementation due to it's being a
-    # flag instead of a "value" and this was easier than trying to
-    # shoehorn the logic into the BlyncCommand descriptor.
-    #
+
+    """BlyncSpeed descriptor sets and gets the speed field of a BlyncLight
+    in-memory represenation. The speed field is a bit flag whose valid
+    values are 1, 2, and 4 (b001, b010, b100). 
+    """
+
     # If more than one bit is set in the three bit speed field and the
     # flash bit is set, the light will flash exceedingly fast. If speed
     # is zero, the light turns off regardless of off == 0. Bug in the
@@ -139,7 +146,8 @@ class BlyncLight(BitVector):
 
     @classmethod
     def available_lights(cls) -> List[Dict[str, Union[int, str]]]:
-        """
+        """Returns a list of dictionaries describing all the BlyncLight
+        devices found. 
         """
         lights = []
         for vendor_id in EMBRAVA_VENDOR_IDS:
@@ -148,10 +156,16 @@ class BlyncLight(BitVector):
 
     @classmethod
     def get_light(cls, light_id: int = 0, immediate: bool = True):
-        """
+        """Returns a configured BlyncLight for the supplied `light_id`
+        which is an index into the list of available devices discovered.
+
+        :param light_id: int
+        :param immediate: bool
+
         Raises
-        - KeyError
-        - ValueError
+        - BlyncLightNotFound
+        - BlyncLightInUse
+        - BlyncLightUnknown
         """
         try:
             light = cls.available_lights()[light_id]
@@ -161,6 +175,22 @@ class BlyncLight(BitVector):
         return cls(light["vendor_id"], light["product_id"], immediate)
 
     def __init__(self, vendor_id: int, product_id: int, immediate: bool = False):
+        """Returns a configured BlyncLight.
+
+        The `immediate` argument initializes the light's immediate property. 
+        If `immediate` is False, modified state is not written to the light
+        until the user calls BlyncLight.update().  If immediate is True, any
+        changes are written to the light immediately.
+
+        :param vendor_id: int
+        :param product_id: int
+
+        Raises
+        - BlyncLightNotFound
+        - BlyncLightInUse
+        - BlyncLightUnknown
+        """
+
         super().__init__(size=COMMAND_LENGTH * 8)
 
         self.vendor_id = vendor_id
@@ -204,17 +234,25 @@ class BlyncLight(BitVector):
         self.device.close()
 
     def update(self, force: bool = False) -> None:
-        """
+        """Write the current in-memory representation of the light's state
+        to the target light. If immediate or force is True, the write is attempted.
+        If not force and not self.immediate, the write is deferred.
+
+        :param force: bool
         """
         if self.immediate or force:
             self.device.write(self.bytes)
             return
 
     def reset(self, flush: bool = True) -> None:
-        """
+        """Resets the in-memory representation of the light's state to a known
+        state (off=1, speed=1, mute=1, all other bits zero) and writes the state
+        to the target light depending on the value of `flush`. 
+
+        :param flush: bool
         """
         with self.updates_paused():
-            self[64:72] = 0
+            self[64:72] = 0  # this should always be zero
             self.red = 0
             self.blue = 0
             self.green = 0
@@ -225,7 +263,7 @@ class BlyncLight(BitVector):
             self.repeat = 0
             self.play = 0
             self.music = 0
-            self.mute = 0
+            self.mute = 1
             self.volume = 0
             self[0:16] = END_OF_COMMAND
 
@@ -233,10 +271,13 @@ class BlyncLight(BitVector):
 
     @property
     def identifier(self):
+        """Hexadecimal concatenation of vendor_id and product_id."""
         return f"0x{self.vendor_id:04x}:0x{self.product_id:04x}"
 
     @property
     def status(self) -> Dict[str, str]:
+        """A dictionary representation of the bit vector.
+        """
         try:
             return self._status
         except AttributeError:
@@ -260,7 +301,10 @@ class BlyncLight(BitVector):
         return self._status
 
     @property
-    def immediate(self):
+    def immediate(self) -> bool:
+        """Property which controls the frequency that state is written
+        to the target light.
+        """
         return getattr(self, "_immediate", False)
 
     @immediate.setter
@@ -270,6 +314,8 @@ class BlyncLight(BitVector):
 
     @property
     def on(self) -> bool:
+        """Reverse logic getter/setter for `off` property.
+        """
         return 0 if self.off else 1
 
     @on.setter
@@ -278,6 +324,8 @@ class BlyncLight(BitVector):
 
     @property
     def bright(self) -> bool:
+        """Reverse logic getter/setter for `dim` property.
+        """
         return not self.dim
 
     @bright.setter
@@ -286,6 +334,7 @@ class BlyncLight(BitVector):
 
     @property
     def color(self) -> Tuple[int, int, int]:
+        """Returns a 3-tuple of integers: (red, blue, green)."""
         return (self.red, self.blue, self.green)
 
     @color.setter
