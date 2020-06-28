@@ -1,5 +1,7 @@
 import pytest
 
+from unittest import mock
+
 from blynclight import (
     BlyncLight,
     BlyncLightNotFound,
@@ -38,17 +40,7 @@ def Light():
     except BlyncLightNotFound:
         pass
 
-    class MockDevice:
-        def write(self, data):
-            return COMMAND_LENGTH
+    with mock.patch("hid.device") as MockHelper:
+        b = BlyncLight(EMBRAVA_VENDOR_IDS[0], 0xFFFF, immediate=False)
 
-        def close(self):
-            pass
-
-    # pass in immediate=False to suppress writes to the device
-    # until the device attribute has been successfully updated
-    # with the mock object.
-
-    b = BlyncLight(EMBRAVA_VENDOR_IDS[0], 0xFFFF, immediate=False)
-    b._device = MockDevice()
     return b
