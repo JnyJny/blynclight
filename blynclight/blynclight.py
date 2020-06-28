@@ -28,6 +28,22 @@ class BlyncCommand(BitField):
             logger.error(f"Failed to update {obj!r} after setting {self.name}")
 
 
+class BlyncColor(BlyncCommand):
+    """An eight-bit color value."""
+
+
+class BlyncOff(BlyncCommand):
+    """Single bit toggle: light off (off == 1) and on (off == 0)."""
+
+
+class BlyncDim(BlyncCommand):
+    """Single bit toggle: light dim (dim == 1) and bright (dim == 0)."""
+
+
+class BlyncFlash(BlyncCommand):
+    """Single bit toggle; Blinking (flash == 1) and steady (flash == 0)."""
+
+
 class BlyncSpeed(BlyncCommand):
 
     """BlyncSpeed descriptor sets and gets the speed field of a BlyncLight
@@ -47,6 +63,26 @@ class BlyncSpeed(BlyncCommand):
     def __set__(self, obj, value) -> None:
         speed = FlashSpeed.speed_for_value(value)
         super().__set__(obj, speed)
+
+
+class BlyncRepeat(BlyncCommand):
+    """Single bit that toggles music repeat on and off."""
+
+
+class BlyncPlay(BlyncCommand):
+    """Single bit that toggles music start and stop."""
+
+
+class BlyncMusic(BlyncCommand):
+    """Four bit field that choose which song to play."""
+
+
+class BlyncVolume(BlyncCommand):
+    """Four bit field that the volume used to play a song."""
+
+
+class BlyncMute(BlyncCommand):
+    """Single bit that toggles music mute and unmute."""
 
 
 class BlyncLight(BitVector):
@@ -207,18 +243,18 @@ class BlyncLight(BitVector):
         self.reset()
         self.immediate = immediate
 
-    red = BlyncCommand(56, 8)
-    blue = BlyncCommand(48, 8)
-    green = BlyncCommand(40, 8)
-    off = BlyncCommand(32, 1)
-    dim = BlyncCommand(33, 1)
-    flash = BlyncCommand(34, 1)
+    red = BlyncColor(56, 8)
+    blue = BlyncColor(48, 8)
+    green = BlyncColor(40, 8)
+    off = BlyncOff(32, 1)
+    dim = BlyncDim(33, 1)
+    flash = BlyncFlash(34, 1)
     speed = BlyncSpeed(35, 3)
-    repeat = BlyncCommand(29, 1)
-    play = BlyncCommand(28, 1)
-    music = BlyncCommand(24, 4)
-    mute = BlyncCommand(23, 1)
-    volume = BlyncCommand(18, 4)
+    repeat = BlyncRepeat(29, 1)
+    play = BlyncPlay(28, 1)
+    music = BlyncMusic(24, 4)
+    mute = BlyncMute(23, 1)
+    volume = BlyncVolume(18, 4)
 
     def __repr__(self):
         return f"{self.__class__.__name__}(product_id=0x{self.product_id:04x}, vendor_id=0x{self.product_id:04x})"
