@@ -6,9 +6,9 @@ from functools import partial, partialmethod, wraps
 
 import hid
 
+from bitvector import BitVector, BitField
 from loguru import logger
 
-from .bitvector import BitVector, BitField
 from .constants import EMBRAVA_VENDOR_IDS, FlashSpeed, END_OF_COMMAND, COMMAND_LENGTH
 from .exceptions import BlyncLightInUse, BlyncLightNotFound, BlyncLightUnknownDevice
 

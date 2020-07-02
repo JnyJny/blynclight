@@ -28,6 +28,7 @@ python = "^3.6"
 typer = "^0"
 hidapi = "^0"
 loguru = "^0.5.1"
+bitvector-for-humans = "^0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4"
