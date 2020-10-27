@@ -182,15 +182,15 @@ Generate a Linux udev rules file.
 Linux uses the udev subsystem to manage USB devices as they are
 plugged and unplugged. By default, only the root user has read and
 write access. The rules generated grant read/write access to all users
-for all known USB lights by vendor id. Modify the rules to suit your
+for all known Embrava device vendor ids. Modify the rules to suit your
 particular environment.
 
 Example:
 
 
 ```
-$ busylight udev-rules -o 99-busylight.rules
-$ sudo cp 99-busylight.rules /etc/udev/rules.d
+$ blync udev-rules -o 99-blynclight.rules
+$ sudo cp 99-blynclight.rules /etc/udev/rules.d
 $ sudo udevadm control -R
 # unplug/plug USB devices
 ```
