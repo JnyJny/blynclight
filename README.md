@@ -83,6 +83,7 @@ $ blync [OPTIONS] COMMAND [ARGS]...
 * `fli`: Flash Light Impressively.
 * `rainbow`: BlyncLights Love Rainbows.
 * `throbber`: BlyncLight Intensifies.
+* `udev-rules`: Generate a Linux udev rules file.
 
 ## `blync fli`
 
@@ -172,4 +173,35 @@ $ blync throbber [OPTIONS]
 **Options**:
 
 * `-f, --faster`: Increases speed.
+* `--help`: Show this message and exit.
+
+## `blync udev-rules`
+
+Generate a Linux udev rules file.
+
+Linux uses the udev subsystem to manage USB devices as they are
+plugged and unplugged. By default, only the root user has read and
+write access. The rules generated grant read/write access to all users
+for all known USB lights by vendor id. Modify the rules to suit your
+particular environment.
+
+Example:
+
+
+```
+$ busylight udev-rules -o 99-busylight.rules
+$ sudo cp 99-busylight.rules /etc/udev/rules.d
+$ sudo udevadm control -R
+# unplug/plug USB devices
+```
+
+**Usage**:
+
+```console
+$ blync udev-rules [OPTIONS]
+```
+
+**Options**:
+
+* `-o, --output PATH`: Save udev rules to this file.
 * `--help`: Show this message and exit.

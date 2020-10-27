@@ -5,18 +5,20 @@ Control your Embrava BlyncLight from the command-line!
 """
 
 import sys
+
 import typer
 
 
-from blynclight import BlyncLightNotFound
-from blynclight.blynclight import BlyncLight
 from collections import deque
 from itertools import cycle
 from loguru import logger
-
-from sys import stdout
+from pathlib import Path
 from time import sleep
 
+
+from .blynclight import BlyncLight
+from .constants import EMBRAVA_VENDOR_IDS
+from .exceptions import BlyncLightNotFound
 from .effects import Gradient, Spectrum
 from .__version__ import __version__
 
@@ -77,7 +79,11 @@ def verbosity(value: int) -> None:
 def blync_callback(
     ctx: typer.Context,
     light_id: int = typer.Option(
-        0, "--light-id", "-l", show_default=True, help="Light identifier",
+        0,
+        "--light-id",
+        "-l",
+        show_default=True,
+        help="Light identifier",
     ),
     red: int = typer.Option(
         0,
@@ -124,7 +130,12 @@ def blync_callback(
         show_default=True,
     ),
     flash: int = typer.Option(
-        0, "--flash", "-f", count=True, is_flag=True, help="Enable flash mode.",
+        0,
+        "--flash",
+        "-f",
+        count=True,
+        is_flag=True,
+        help="Enable flash mode.",
     ),
     play: int = typer.Option(0, "--play", "-p", help="Select song: 1-15"),
     repeat: bool = typer.Option(
@@ -200,6 +211,10 @@ def blync_callback(
     [hidapi](https://github.com/trezor/cython-hidapi), which supports
     Windows, Linux, FreeBSD and MacOS via a Cython module.
     """
+
+    if ctx.invoked_subcommand == "udev-rules":
+        return
+
     try:
         light = BlyncLight.get_light(light_id, immediate=False)
     except BlyncLightNotFound as error:
@@ -245,10 +260,18 @@ def blync_callback(
 def fli_subcommand(
     ctx: typer.Context,
     interval: float = typer.Option(
-        0.1, "--interval", "-n", help="Seconds between flashes.", show_default=True,
+        0.1,
+        "--interval",
+        "-n",
+        help="Seconds between flashes.",
+        show_default=True,
     ),
     intensity: int = typer.Option(
-        255, "--intensity", "-i", help="Integer range: 0 - 255", show_default=True,
+        255,
+        "--intensity",
+        "-i",
+        help="Integer range: 0 - 255",
+        show_default=True,
     ),
 ):
     """Flash Light Impressively.
@@ -290,7 +313,13 @@ def fli_subcommand(
 @cli.command("throbber")
 def throbber_subcommand(
     ctx: typer.Context,
-    fast: int = typer.Option(0, "--faster", "-f", help="Increases speed.", count=True,),
+    fast: int = typer.Option(
+        0,
+        "--faster",
+        "-f",
+        help="Increases speed.",
+        count=True,
+    ),
 ):
     """BlyncLight Intensifies.
 
@@ -379,3 +408,42 @@ def rainbow_subcommand(
     except KeyboardInterrupt:
         light.off = True
         light.reset()
+
+
+@cli.command(name="udev-rules")
+def udev_rules_subcommand(
+    ctx: typer.Context,
+    filename: Path = typer.Option(
+        None, "--output", "-o", help="Save udev rules to this file."
+    ),
+):
+    """Generate a Linux udev rules file.
+
+    Linux uses the udev subsystem to manage USB devices as they are
+    plugged and unplugged. By default, only the root user has read and
+    write access. The rules generated grant read/write access to all users
+    for all known USB lights by vendor id. Modify the rules to suit your
+    particular environment.
+
+    Example:
+
+    \b
+    ```
+    $ busylight udev-rules -o 99-busylight.rules
+    $ sudo cp 99-busylight.rules /etc/udev/rules.d
+    $ sudo udevadm control -R
+    # unplug/plug USB devices
+    ```
+    """
+
+    output = filename.open("w") if filename else sys.stdout
+
+    for vendor_id in EMBRAVA_VENDOR_IDS:
+        print(
+            f'KERNEL=="hidraw*", ATTRS{{idVendor}}=="{vendor_id:04x}", MODE="0666"',
+            file=output,
+        )
+        print(
+            f'SUBSYSTEM=="usb", ATTRS{{idVendor}}=="{vendor_id:04x}", MODE="0666"',
+            file=output,
+        )
