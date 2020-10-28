@@ -1,7 +1,15 @@
-Checkout my latest project, [Busylight for Humans™](https://github.com/JnyJny/busylight.git)!
+# NOTICE
 
-It supports the Embrava BlyncLight family of lights in addition to four other vendor's USB connected lights. It has a web API and honestly a better command-line interface. If you don't like it, I'll double your money back!
+`blynclight` is largely deprecated in favor of [Busylight for Humans™](https://github.com/JnyJny/busylight.git). 
 
+`Busylight` supports the a wide variety of lights (including the Embrava BlyncLight family) and has:
+ - a web API 
+ - a better command-line interface
+ - multiple simultaneous light control
+ - threaded animation effects
+ - extensive documentation
+ 
+ 
 # `blync`
 
 Control your Embrava BlyncLight from the command-line!
