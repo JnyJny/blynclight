@@ -1,8 +1,8 @@
 # NOTICE
 
-`blynclight` is largely deprecated in favor of [Busylight for Humans™](https://github.com/JnyJny/busylight.git). 
+`blynclight` is largely deprecated in favor of [BusyLight for Humans™](https://github.com/JnyJny/busylight.git). 
 
-`Busylight` supports the a wide variety of lights (including the Embrava BlyncLight family) and has:
+`BusyLight` supports a wide variety of lights (including the Embrava BlyncLight family) and has:
  - a web API 
  - a better command-line interface
  - multiple simultaneous light control
