@@ -1,6 +1,7 @@
 # NOTICE
 
-`blynclight` is largely deprecated in favor of [BusyLight for Humans™](https://github.com/JnyJny/busylight.git). 
+# `blynclight` is deprecated.
+# Please consider trying [BusyLight for Humans™](https://github.com/JnyJny/busylight.git).
 
 `BusyLight` supports a wide variety of lights (including the Embrava BlyncLight family) and has:
  - a web API 
